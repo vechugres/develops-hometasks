@@ -20,6 +20,7 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell", inline: <<-SHELL
 
 	sudo apt update
+  sudo apt install mc -y
   sudo apt install -y lxc lxc-templates
   sudo systemctl start lxc
 	apt remove gnupg
@@ -75,7 +76,6 @@ Vagrant.configure("2") do |config|
 	sudo lxc-attach -n c2 -- ln -s /etc/httpd/sites-available/dynamic.conf /etc/httpd/sites-enabled/dynamic.conf
 	sudo lxc-attach -n c2 -- systemctl restart httpd
 	
-
  SHELL
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
