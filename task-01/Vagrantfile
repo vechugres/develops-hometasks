@@ -12,17 +12,19 @@ Vagrant.configure("2") do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://vagrantcloud.com/search.
-  config.vm.box = "vechugres/centos8"
+  config.vm.box = "vechugres-centos8"
 
   config.vm.network "forwarded_port", guest: 80, host: 8080
   config.vm.network "forwarded_port", guest: 81, host: 8081
 
-  config.ssh.username = "vagrant"
-  config.ssh.password = "vagrant"
-  config.ssh.insert_key = false
+  #config.ssh.username = "vagrant"
+  #config.ssh.password = "vagrant"
+  #config.ssh.insert_key = false
   config.vm.synced_folder ".", "/vagrant"
 
   config.vm.provision "shell", inline: <<-SHELL
+
+
 
 	
 	sudo setsebool -P httpd_unified 1
