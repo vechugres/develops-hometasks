@@ -12,38 +12,53 @@ Vagrant.configure("2") do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://vagrantcloud.com/search.
-  config.vm.box = "debian/buster64"
+  config.vm.box = "vechugres-centos8"
 
   config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
   config.vm.network "forwarded_port", guest: 81, host: 8081, host_ip: "127.0.0.1"
 
+  config.ssh.username = "vagrant"
+  config.ssh.password = "vagrant"
+  config.ssh.insert_key = false
+  config.vm.synced_folder ".", "/vagrant"
+
+
   config.vm.provision "shell", inline: <<-SHELL
 	#apt update
-	sudo apt install -y apache2
-  sudo apt install -y libapache2-mod-php php php-cli php-mysql php-json php-opcache php-mbstring php-intl php-xml php-gd php-zip php-curl php-xmlrpc unzip
-	
+	#sudo apt install -y apache2
+  #sudo apt install -y libapache2-mod-php php php-cli php-mysql php-json php-opcache php-mbstring php-intl php-xml php-gd php-zip php-curl php-xmlrpc unzip
+	sudo setsebool -P httpd_unified 1
   #static
   sudo mkdir -p /var/www/static/html
   sudo chown -R root:vagrant /var/www/static/html
-	sudo chmod -R 0755 /var/www/static
-
-	sudo cp /vagrant/index.html /var/www/static/html/
-	sudo cp /vagrant/static.conf /etc/apache2/sites-available/
-  sudo a2ensite static.conf
+	sudo chmod -R 755 /var/www
+	sudo cp /vagrant/index.html /var/www/static/html
+	#sudo cp /vagrant/static.conf /etc/apache2/sites-available/
+  #sudo a2ensite static.conf
   
   #dynamic
   sudo mkdir -p /var/www/dynamic/html
   sudo chown -R root:vagrant /var/www/dynamic/html
-  sudo chmod -R 0755 /var/www/dynamic
+  sudo chmod -R 755 /var/www
+  sudo cp /vagrant/index.php /var/www/dynamic/html
+  #sudo chcon -R --type=httpd_sys_rw_content_t /var/www/dynamic/html
+  #sudo cp /vagrant/dynamic.conf /etc/apache2/sites-available/
+  #sudo a2ensite dynamic.conf
+  #sudo cp /vagrant/ports.conf /etc/apache2/
+  #sudo a2dissite 000-default.conf
 
-  sudo cp /vagrant/index.php /var/www/dynamic/
-  sudo cp /vagrant/dynamic.conf /etc/apache2/sites-available/
-  sudo a2ensite dynamic.conf
+  sudo mkdir /etc/httpd/sites-available
+	sudo mkdir /etc/httpd/sites-enabled
 
+  sudo cp /vagrant/static.conf /etc/httpd/sites-available/
+	sudo cp /vagrant/dynamic.conf /etc/httpd/sites-available/
+  sudo cp /vagrant/httpd.conf /etc/httpd/conf/
 
-  sudo cp /vagrant/ports.conf /etc/apache2/
-  sudo a2dissite 000-default.conf
-  sudo systemctl restart apache2
+  sudo ln -s /etc/httpd/sites-available/static.conf /etc/httpd/sites-enabled/static.conf
+	sudo ln -s /etc/httpd/sites-available/dynamic.conf /etc/httpd/sites-enabled/dynamic.conf
+
+  
+  sudo systemctl start httpd
   SHELL
 
   # Disable automatic box update checking. If you disable this, then
