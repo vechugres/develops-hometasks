@@ -24,29 +24,22 @@ Vagrant.configure("2") do |config|
 
 
   config.vm.provision "shell", inline: <<-SHELL
-	#apt update
-	#sudo apt install -y apache2
-  #sudo apt install -y libapache2-mod-php php php-cli php-mysql php-json php-opcache php-mbstring php-intl php-xml php-gd php-zip php-curl php-xmlrpc unzip
+
 	sudo setsebool -P httpd_unified 1
+
   #static
   sudo mkdir -p /var/www/static/html
   sudo chown -R root:vagrant /var/www/static/html
 	sudo chmod -R 755 /var/www
 	sudo cp /vagrant/index.html /var/www/static/html
-	#sudo cp /vagrant/static.conf /etc/apache2/sites-available/
-  #sudo a2ensite static.conf
+	
   
   #dynamic
   sudo mkdir -p /var/www/dynamic/html
   sudo chown -R root:vagrant /var/www/dynamic/html
   sudo chmod -R 755 /var/www
   sudo cp /vagrant/index.php /var/www/dynamic/html
-  #sudo chcon -R --type=httpd_sys_rw_content_t /var/www/dynamic/html
-  #sudo cp /vagrant/dynamic.conf /etc/apache2/sites-available/
-  #sudo a2ensite dynamic.conf
-  #sudo cp /vagrant/ports.conf /etc/apache2/
-  #sudo a2dissite 000-default.conf
-
+ 
   sudo mkdir /etc/httpd/sites-available
 	sudo mkdir /etc/httpd/sites-enabled
 
