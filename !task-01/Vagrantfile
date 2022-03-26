@@ -17,7 +17,11 @@ Vagrant.configure("2") do |config|
   config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
   config.vm.network "forwarded_port", guest: 81, host: 8081, host_ip: "127.0.0.1"
 
-    config.vm.synced_folder ".", "/vagrant"
+  config.vm.provider "virtualbox" do |vb|
+    vb.name = "vagrant.vm"
+  end
+
+  config.vm.synced_folder ".", "/vagrant"
 
 
   config.vm.provision "shell", inline: <<-SHELL
@@ -27,14 +31,14 @@ Vagrant.configure("2") do |config|
   #static
   sudo mkdir -p /var/www/static/html
   sudo chown -R root:vagrant /var/www/static/html
-	sudo chmod -R 755 /var/www
+	sudo chmod -R 0755 /var/www
 	sudo cp /vagrant/index.html /var/www/static/html
 	
   
   #dynamic
   sudo mkdir -p /var/www/dynamic/html
   sudo chown -R root:vagrant /var/www/dynamic/html
-  sudo chmod -R 755 /var/www
+  sudo chmod -R 0755 /var/www
   sudo cp /vagrant/index.php /var/www/dynamic/html
  
   sudo mkdir /etc/httpd/sites-available
@@ -49,6 +53,8 @@ Vagrant.configure("2") do |config|
 
   
   sudo systemctl start httpd
+  
+
   SHELL
 
   # Disable automatic box update checking. If you disable this, then
