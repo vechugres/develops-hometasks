@@ -1,0 +1,32 @@
+---
+- name: ansible provision for my site
+  hosts: all
+  become: yes
+
+  tasks:
+
+   - include_vars: vars.yml
+
+   - name: create directories on my webserver
+     file:
+      path: "{{ item.path }}"
+      mode: "{{ item.mode }}"
+      state: directory
+     with_items:
+      - {path: '{{ dest_dynamic }}', mode: '0755'}
+      - {path: '{{ dest_static }}', mode: '0755'}
+
+   - name: copy my files to webserver
+     copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+     with_items:
+      - {src: '{{ src_dynamic }}', dest: '{{ dest_dynamic }}'}
+      - {src: '{{ src_httpd }}', dest: '{{ dest_httpd }}'}
+      - {src: '{{ src_ports }}', dest: '{{ dest_ports }}'}
+      - {src: '{{ src_static }}', dest: '{{ dest_static }}'}
+
+   - name: restart httpd
+     service:
+      name: httpd
+      state: restarted

@@ -1,0 +1,11 @@
+
+   src_dynamic: /vagrant/mywebsite/index.php
+   dest_dynamic: /var/www/dynamic/html
+
+   src_static: /vagrant/mywebsite/index.html
+   dest_static: /var/www/static/html
+
+   src_httpd: /vagrant/mywebsite/httpd.conf
+   dest_httpd: /etc/httpd/conf/
+   src_ports: /vagrant/mywebsite/ports.conf
+   dest_ports: /etc/httpd/conf.d
