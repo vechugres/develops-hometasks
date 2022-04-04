@@ -1,0 +1,105 @@
+---
+- name: ad astra per lxc
+  hosts: all
+  become: yes
+
+  tasks:
+
+    - name: install packages
+      apt:
+        pkg:
+        - lxc
+        - lxc-templates
+        - lxc-dev
+        - python3-pip
+        - python3-lxc
+        state: latest
+        update_cache: true
+
+    - name: copy default.conf
+      copy:
+       src: /vagrant/default.conf
+       dest: /etc/lxc/
+
+    - name: copy lxc-net
+      copy:
+       src: /vagrant/lxc-net
+       dest: /etc/default
+
+    - name: restart lxc
+      service:
+        name: lxc-net
+        state: restarted
+
+    - name: create container c1
+      lxc_container:
+        name: c1
+        template: download
+        template_options: --dist centos --release 8-Stream --arch amd64 --no-validate
+        state: started
+        container_command: |
+          sleep 25
+          yum -y install httpd
+          systemctl enable httpd
+          systemctl start httpd
+          sleep 5
+
+    - name: create container c2
+      lxc_container:
+        name: c2
+        template: download
+        template_options: --dist centos --release 8-Stream --arch amd64 --no-validate
+        state: started
+        container_command: |
+          sleep 25
+          yum -y install httpd
+          yum -y install php
+          systemctl enable httpd
+          systemctl start httpd
+          sleep 5
+
+    - name: create st/dy folders in c1 and c2
+      file:
+        path: "{{ item.path }}"
+        mode: "{{ item.mode }}"
+        state: directory
+      with_items:
+        - {path: '/var/lib/lxc/c1/rootfs/var/www/static/html', mode: '0755' }
+        - {path: '/var/lib/lxc/c2/rootfs/var/www/dynamic/html', mode: '0755' }
+
+    - name: copy index and ports files in c1 and c2
+      copy:
+       src: "{{ item.src }}"
+       dest: "{{ item.dest }}"
+      with_items:
+       - {src: '/vagrant/index.html', dest: '/var/lib/lxc/c1/rootfs/var/www/static/html '}
+       - {src: '/vagrant/static.conf', dest: '/var/lib/lxc/c1/rootfs/etc/httpd/conf.d/ '}
+       - {src: '/vagrant/httpd.conf', dest: '/var/lib/lxc/c1/rootfs/etc/httpd/conf/httpd.conf '}
+       - {src: '/vagrant/index.php', dest: '/var/lib/lxc/c2/rootfs/var/www/dynamic/html '}
+       - {src: '/vagrant/dynamic.conf', dest: '/var/lib/lxc/c2/rootfs/etc/httpd/conf.d/ '}
+       - {src: '/vagrant/httpd.conf', dest: '/var/lib/lxc/c2/rootfs/etc/httpd/conf/httpd.conf '}
+
+    - name: change ports
+      replace:
+       path: /var/lib/lxc/c2/rootfs/etc/httpd/conf/httpd.conf
+       regexp: 'Listen 80'
+       replace: 'Listen 81'
+
+    - name: restart httpd on c1
+      lxc_container:
+        name: c1
+        state: started
+        container_command: |
+         systemctl restart httpd
+
+    - name: restart httpd on c2
+      lxc_container:
+        name: c2
+        state: started
+        container_command: |
+         systemctl restart httpd
+
+    # f***ing iptablese
+    - shell: ip1=$(sudo lxc-info -n c1 -iH);sudo iptables -t nat -A PREROUTING -p tcp -i enp0s3 --dport 80 -j DNAT --to-destination $ip1:80
+
+    - shell: ip1=$(sudo lxc-info -n c2 -iH);sudo iptables -t nat -A PREROUTING -p tcp -i enp0s3 --dport 81 -j DNAT --to-destination $ip2:81
