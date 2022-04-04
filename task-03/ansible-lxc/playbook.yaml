@@ -42,7 +42,7 @@
           yum -y install httpd
           systemctl enable httpd
           systemctl start httpd
-          sleep 5
+
 
     - name: create container c2
       lxc_container:
@@ -56,7 +56,7 @@
           yum -y install php
           systemctl enable httpd
           systemctl start httpd
-          sleep 5
+
 
     - name: create st/dy folders in c1 and c2
       file:
@@ -72,12 +72,12 @@
        src: "{{ item.src }}"
        dest: "{{ item.dest }}"
       with_items:
-       - {src: '/vagrant/index.html', dest: '/var/lib/lxc/c1/rootfs/var/www/static/html '}
-       - {src: '/vagrant/static.conf', dest: '/var/lib/lxc/c1/rootfs/etc/httpd/conf.d/ '}
-       - {src: '/vagrant/httpd.conf', dest: '/var/lib/lxc/c1/rootfs/etc/httpd/conf/httpd.conf '}
-       - {src: '/vagrant/index.php', dest: '/var/lib/lxc/c2/rootfs/var/www/dynamic/html '}
-       - {src: '/vagrant/dynamic.conf', dest: '/var/lib/lxc/c2/rootfs/etc/httpd/conf.d/ '}
-       - {src: '/vagrant/httpd.conf', dest: '/var/lib/lxc/c2/rootfs/etc/httpd/conf/httpd.conf '}
+       - {src: '/vagrant/index.html', dest: '/var/lib/lxc/c1/rootfs/var/www/static/html/'}
+       - {src: '/vagrant/static.conf', dest: '/var/lib/lxc/c1/rootfs/etc/httpd/conf.d/'}
+       - {src: '/vagrant/httpd.conf', dest: '/var/lib/lxc/c1/rootfs/etc/httpd/conf/httpd.conf'}
+       - {src: '/vagrant/index.php', dest: '/var/lib/lxc/c2/rootfs/var/www/dynamic/html/'}
+       - {src: '/vagrant/dynamic.conf', dest: '/var/lib/lxc/c2/rootfs/etc/httpd/conf.d/'}
+       - {src: '/vagrant/httpd.conf', dest: '/var/lib/lxc/c2/rootfs/etc/httpd/conf/httpd.conf'}
 
     - name: change ports
       replace:
@@ -102,4 +102,4 @@
     # f***ing iptablese
     - shell: ip1=$(sudo lxc-info -n c1 -iH);sudo iptables -t nat -A PREROUTING -p tcp -i enp0s3 --dport 80 -j DNAT --to-destination $ip1:80
 
-    - shell: ip1=$(sudo lxc-info -n c2 -iH);sudo iptables -t nat -A PREROUTING -p tcp -i enp0s3 --dport 81 -j DNAT --to-destination $ip2:81
+    - shell: ip2=$(sudo lxc-info -n c2 -iH);sudo iptables -t nat -A PREROUTING -p tcp -i enp0s3 --dport 81 -j DNAT --to-destination $ip2:81
