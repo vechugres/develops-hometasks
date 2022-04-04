@@ -85,6 +85,12 @@
        regexp: 'Listen 80'
        replace: 'Listen 81'
 
+
+       # f***ing iptablese
+    - shell: ip1=$(sudo lxc-info -n c1 -iH);sudo iptables -t nat -A PREROUTING -p tcp -i enp0s3 --dport 80 -j DNAT --to-destination $ip1:80
+
+    - shell: ip2=$(sudo lxc-info -n c2 -iH);sudo iptables -t nat -A PREROUTING -p tcp -i enp0s3 --dport 81 -j DNAT --to-destination $ip2:81
+
     - name: restart httpd on c1
       lxc_container:
         name: c1
@@ -98,8 +104,3 @@
         state: started
         container_command: |
          systemctl restart httpd
-
-    # f***ing iptablese
-    - shell: ip1=$(sudo lxc-info -n c1 -iH);sudo iptables -t nat -A PREROUTING -p tcp -i enp0s3 --dport 80 -j DNAT --to-destination $ip1:80
-
-    - shell: ip2=$(sudo lxc-info -n c2 -iH);sudo iptables -t nat -A PREROUTING -p tcp -i enp0s3 --dport 81 -j DNAT --to-destination $ip2:81
