@@ -107,7 +107,9 @@
        src: /vagrant/drupal.conf
        dest: /etc/apache2/sites-available/
 
-
+# f***ing iptablese
+    - shell: ip1=$(sudo lxc-info -n c1 -iH);sudo iptables -t nat -A PREROUTING -p tcp -i enp0s3 --dport 80 -j DNAT --to-destination $ip1:80
+    - shell: ipd=$(sudo lxc-info -n c1 -iH);sudo iptables -t nat -A PREROUTING -p tcp -i enp0s3 --dport 3306 -j DNAT --to-destination $ipd:3306
 
     - name: restart apache2 on c1
       lxc_container:
@@ -117,8 +119,3 @@
          a2enmod rewrite
          a2ensite drupal.conf
          systemctl restart apache2
-
-
-
-           # f***ing iptablese
-    - shell: ip1=$(sudo lxc-info -n c1 -iH);sudo iptables -t nat -A PREROUTING -p tcp -i enp0s3 --dport 80 -j DNAT --to-destination $ip1:80
