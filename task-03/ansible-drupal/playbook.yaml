@@ -1,0 +1,124 @@
+---
+- name: ad astra per drupal
+  hosts: all
+  become: yes
+
+  tasks:
+
+    - name: install packages
+      apt:
+        pkg:
+        - lxc
+        - lxc-templates
+        - lxc-dev
+        - python3-pip
+        - python3-lxc
+        state: latest
+       # update_cache: true
+
+    - name: copy default.conf
+      copy:
+       src: /vagrant/default.conf
+       dest: /etc/lxc/
+
+    - name: copy lxc-net
+      copy:
+       src: /vagrant/lxc-net
+       dest: /etc/default/
+
+    - name: copy lxc-net
+      copy:
+       src: /vagrant/dnsmasq.conf
+       dest: /etc/lxc/
+
+    - name: restart lxc
+      service:
+        name: lxc-net
+        state: restarted
+
+    - name: create container c1
+      lxc_container:
+        name: c1
+        template: download
+        template_options: --dist ubuntu --release focal --arch amd64 --no-validate
+        state: started
+        container_command: |
+          sleep 20
+          apt update
+          apt install curl -y
+          apt install apache2 -y
+          apt install apache2-utils -y
+          apt install php8.0-cli php8.0-common php8.0-fpm php8.0-redis php8.0-snmp php8.0-xml -y
+          systemctl enable apache2
+          systemctl start apache2
+
+          wget https://www.drupal.org/download-latest/tar.gz -O drupal.tar.gz
+          tar xvf drupal.tar.gz
+          rm -f drupal*.tar.gz
+          mv drupal-*/ /var/www/html/drupal
+          chown -R www-data:www-data /var/www/html/
+          chmod -R 755 /var/www/html/
+
+
+
+    - name: copy index files in c1 and c2
+      copy:
+       src: "{{ item.src }}"
+       dest: "{{ item.dest }}"
+       remote_src: yes
+      with_items:
+       - {src: '/vagrant/index.php', dest: '/var/lib/lxc/c1/rootfs/var/www/html/'}
+
+
+
+    - name: create container c2
+      lxc_container:
+        name: c2
+        template: download
+        template_options: --dist ubuntu --release focal --arch amd64 --no-validate
+        state: started
+        container_command: |
+          sleep 10
+          apt install software-properties-common mariadb-server mariadb-client -y
+          systemctl enable mariadb
+          systemctl start mariadb
+
+
+    - name: Create db
+      mysql_db:
+          login_unix_socket: /var/lib/lxc/c2/rootfs/var/run/mysqld/mysqld.sock
+          name: "drupal"
+          state: present
+          login_user: "root"
+          login_password: "root"
+
+    - name: Create user_db
+      mysql_user:
+          login_unix_socket: /var/lib/lxc/c2/rootfs/var/run/mysqld/mysqld.sock
+          name: "drupal"
+          password: "drupal"
+          priv: '*.*:ALL'
+          state: present
+          login_user: "root"
+          login_password: "root"
+
+    - name: copy drupal.conf
+      copy:
+       src: /vagrant/drupal.conf
+       dest: /etc/apache2/sites-available/
+
+
+
+    - name: restart apache2 on c1
+      lxc_container:
+        name: c1
+        state: started
+        container_command: |
+         a2enmod rewrite
+         a2ensite drupal.conf
+         systemctl restart apache2
+
+
+
+           # f***ing iptablese
+    - shell: ip1=$(sudo lxc-info -n c1 -iH);sudo iptables -t nat -A PREROUTING -p tcp -i enp0s3 --dport 80 -j DNAT --to-destination $ip1:80
