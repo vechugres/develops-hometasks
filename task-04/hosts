@@ -1,3 +1,4 @@
+---
 [master]
 master.puppet ansible_host=192.168.50.5 ansible_connection=local
 
@@ -5,11 +6,12 @@ master.puppet ansible_host=192.168.50.5 ansible_connection=local
 slave1.puppet ansible_host=192.168.50.10 ansible_ssh_user=vagrant ansible_ssh_private_key_file=/home/vagrant/.ssh/id_ssh_rsa
 slave2.puppet ansible_host=192.168.50.15 ansible_ssh_user=vagrant ansible_ssh_private_key_file=/home/vagrant/.ssh/id_ssh_rsa
 
-[all:children]
+[all]
 master
 slaves
 
 [slaves:vars]
 ansible_connection=ssh
 ansible_user=vagrant
+ansible_password=vagrant
 ansible_ssh_common_args='-o StrictHostKeyChecking=no'

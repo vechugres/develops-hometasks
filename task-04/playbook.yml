@@ -31,8 +31,8 @@
     - name: enable pp_srv daemon
       systemd:
        name: puppetserver
-       enabled: yes
        state: started
+       enabled: yes
 
     - name: start pp_srv daemon
       systemd:
@@ -59,7 +59,7 @@
         path: /etc/puppetlabs/r10k/r10k.yaml
         state: touch
 
-    - name: r10k conf
+    - name: Set config r10k
       blockinfile:
         path: /etc/puppetlabs/r10k/r10k.yaml
         block: |
@@ -67,7 +67,7 @@
           :cachedir: '/var/cache/r10k'
           :sources:
             :my-org:
-            remote: 'git@github.com:vechugres/puppet.git'
+            remote: 'https://github.com/vechugres/puppet.git'
             basedir: '/etc/puppetlabs/code/environments'
 
     - name: dns
