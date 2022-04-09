@@ -28,6 +28,17 @@
         - nano
         state: latest
 
+    - name: enable pp_srv daemon
+      systemd:
+       name: puppetserver
+       enabled: yes
+       state: started
+
+    - name: start pp_srv daemon
+      systemd:
+       state: started
+       name: puppetserver
+
     - name: less ram
       become: yes
       replace:
@@ -56,7 +67,7 @@
           :cachedir: '/var/cache/r10k'
           :sources:
             :my-org:
-            remote: 'https://github.com/vechugres/puppet.git'
+            remote: 'git@github.com:vechugres/puppet.git'
             basedir: '/etc/puppetlabs/code/environments'
 
     - name: dns
@@ -75,17 +86,6 @@
       with_items:
        - server = master.puppet
        - autosign = true
-
-    - name: enable pp_srv daemon
-      systemd:
-       name: puppetserver
-       enabled: yes
-       state: started
-
-    - name: start pp_srv daemon
-      systemd:
-       state: started
-       name: puppetserver
 
 #slaves deploy
 - hosts: slaves
