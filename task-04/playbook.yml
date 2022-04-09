@@ -59,7 +59,7 @@
         path: /etc/puppetlabs/r10k/r10k.yaml
         state: touch
 
-    - name: Set config r10k
+    - name: r10k conf
       blockinfile:
         path: /etc/puppetlabs/r10k/r10k.yaml
         block: |
