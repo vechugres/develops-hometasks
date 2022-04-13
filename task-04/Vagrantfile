@@ -31,9 +31,8 @@ Vagrant.configure("2") do |config|
     master.vm.provider("virtualbox") { |vb| vb.memory = 1024 }
 
     master.vm.provision "ansible_local" do |ansible|
-      ansible.playbook = "playbook.yml"
+      ansible.playbook = "Playbook.yml"
       ansible.become = true
-      ansible.inventory_path = "./hosts"
 
     end
 
