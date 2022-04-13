@@ -26,7 +26,7 @@
        src: /vagrant/lxc-net
        dest: /etc/default/
 
-    - name: copy lxc-net
+    - name: copy dnsmasq.conf
       copy:
        src: /vagrant/dnsmasq.conf
        dest: /etc/lxc/
@@ -79,9 +79,9 @@
         state: started
         container_command: |
           sleep 10
-          apt install software-properties-common mariadb-server mariadb-client -y
-          systemctl enable mariadb
-          systemctl start mariadb
+          apt install software-properties-common mysql-server-8.0 mysql-client-8.0 python3-pymysql -y
+          systemctl enable mysql
+          systemctl start mysql
 
 
     - name: Create db
@@ -107,9 +107,7 @@
        src: /vagrant/drupal.conf
        dest: /etc/apache2/sites-available/
 
-# f***ing iptablese
-    - shell: ip1=$(sudo lxc-info -n c1 -iH);sudo iptables -t nat -A PREROUTING -p tcp -i enp0s3 --dport 80 -j DNAT --to-destination $ip1:80
-    - shell: ipd=$(sudo lxc-info -n c1 -iH);sudo iptables -t nat -A PREROUTING -p tcp -i enp0s3 --dport 3306 -j DNAT --to-destination $ipd:3306
+
 
     - name: restart apache2 on c1
       lxc_container:
@@ -119,3 +117,7 @@
          a2enmod rewrite
          a2ensite drupal.conf
          systemctl restart apache2
+
+
+    # f***ing iptablese
+    - shell: ip1=$(sudo lxc-info -n c1 -iH);sudo iptables -t nat -A PREROUTING -p tcp -i enp0s3 --dport 80 -j DNAT --to-destination $ip1:80
