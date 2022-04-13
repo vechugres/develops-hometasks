@@ -9,7 +9,7 @@ Vagrant.configure("2") do |config|
     vb.memory = 512
     vb.cpus   = 1
   end
-
+=begin
   config.vm.define "slave1.puppet" do |slave|
     slave.vm.network "private_network", ip: "192.168.50.10"
     slave.vm.network "forwarded_port", guest: 80, host: 8080
@@ -23,7 +23,7 @@ Vagrant.configure("2") do |config|
     slave.vm.hostname = "slave2.puppet"
 
   end
-
+=end
   config.vm.define "master.puppet", primary: true do |master|
     master.vm.network "private_network", ip: "192.168.50.5"
     master.vm.hostname = "master.puppet"
@@ -33,7 +33,8 @@ Vagrant.configure("2") do |config|
     master.vm.provision "ansible_local" do |ansible|
       ansible.playbook = "Playbook.yml"
       ansible.become = true
-
+      ansible.inventory_path = "inventory/hosts"
+      #ansible.limit = 'all'
     end
 
   end
