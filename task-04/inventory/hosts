@@ -1,0 +1,14 @@
+[master]
+localhost ansible_connection=local
+
+[slave]
+192.168.50.10
+192.168.50.15
+
+[all:vars]
+ansible_ssh_common_args='-o StrictHostKeyChecking=0'
+ansible_connection: ssh
+ansible_user: vagrant
+ansible_password: vagrant
+
+

@@ -43,8 +43,8 @@
       become: yes
       replace:
         path: /etc/sysconfig/puppetserver
-        regexp: 'JAVA_ARGS="-Xms2g -Xmx2g'
-        replace: 'JAVA_ARGS="-Xms256m -Xmx256m'
+        regexp: 'JAVA_ARGS="-Xms2g -Xmx2g"'
+        replace: 'JAVA_ARGS="-Xms256m -Xmx256m"'
 
     - name: inst r10k
       shell: /opt/puppetlabs/puppet/bin/gem install r10k
@@ -67,8 +67,8 @@
           :cachedir: '/var/cache/r10k'
           :sources:
             :my-org:
-            remote: 'https://github.com/vechugres/puppet.git'
-            basedir: '/etc/puppetlabs/code/environments'
+              remote: 'https://github.com/vechugres/puppet.git'
+              basedir: '/etc/puppetlabs/code/environments'
 
     - name: dns
       lineinfile:
