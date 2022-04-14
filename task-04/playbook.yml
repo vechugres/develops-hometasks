@@ -53,6 +53,13 @@
         - server = master.puppet
         - autosign = true
 
+    - name: enabled puppetserver
+      become: true
+      service:
+        name: puppetserver
+        state: started
+        enabled: true
+
     - name: install code management tool - r10k
       shell: /opt/puppetlabs/puppet/bin/gem install r10k
 
@@ -84,23 +91,12 @@
         minute: "*/2"
         job: "/opt/puppetlabs/puppet/bin/r10k deploy environment -p"
 
-    - name: enabled puppetserver service
-      service:
-        name: puppetserver
-        state: restarted
-        enabled: true
-
-    - name: restart puppetserver service
-      service:
-        name: puppetserver
-        state: restarted
-
-    - name: enabled puppetserver agent
-      become: true
-      service:
-        name: puppet
-        state: started
-        enabled: yes
+   # - name: enable puppet service agent
+   #   become: true
+   #   service:
+   #     name: puppet
+   #     state: started
+   #     enabled: true
 
 #slaves deploy
 - name: make puppet clients
@@ -111,12 +107,12 @@
     - name: add puppet server dns
       lineinfile:
         path: /etc/hosts
-        line: '192.168.50.5 master.puppet puppet'
+        line: '192.168.50.5 master.puppet'
 
     - name: install puppet agent
       yum:
-       pkg: puppet-agent
-       state: present
+        pkg: puppet-agent
+        state: present
 
     - name: Config puppetserver
       blockinfile:
@@ -127,13 +123,8 @@
           runinterval = 1m
 
     - name: enable puppet service
+      become: true
       service:
         name: puppet
         enabled: true
         state: started
-
-    - name: restart puppet service
-      become: true
-      service:
-        name: puppet
-        state: restarted
