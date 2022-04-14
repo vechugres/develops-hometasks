@@ -119,7 +119,7 @@
         path: '/etc/puppetlabs/puppet/puppet.conf'
         block: |
           [agent]
-          server = puppetserver
+          server = master.puppet
           runinterval = 1m
 
     - name: enable puppet service
