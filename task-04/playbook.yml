@@ -1,16 +1,139 @@
 ---
-
-- hosts: all
+#all
+- name: add puppet repo and stoped firewall
+  hosts: all
   become: true
   tasks:
 
-   - name: pp repo
-     yum:
-      name: https://yum.puppet.com/puppet7-release-el-8.noarch.rpm
-      disable_gpg_check: yes
+    - name: add repo
+      yum:
+        name: https://yum.puppet.com/puppet7-release-el-8.noarch.rpm
+        disable_gpg_check: yes
 
-   - name: disable firewall
-     service:
-      name: firewalld
-      state: stopped
-      enabled: false
+    - name: disable firewall
+      service:
+        name: firewalld
+        state: stopped
+        enabled: false
+
+#master deploy
+- name: make puppet server
+  hosts: master
+  become: true
+  tasks:
+
+    - name: install puppetserver and git
+      yum:
+        pkg:
+          - puppetserver
+          - git
+        state: present
+
+    - name: set ram
+      become: yes
+      replace:
+        path: /etc/sysconfig/puppetserver
+        regexp: 'JAVA_ARGS="-Xms2g -Xmx2g'
+        replace: 'JAVA_ARGS="-Xms256m -Xmx256m'
+
+    - name: dns
+      lineinfile:
+        path: /etc/hosts
+        line: "{{item}}"
+      with_items:
+        - '192.168.55.5 master.puppet'
+        - '192.168.55.10 slave1.puppet'
+        - '192.168.55.15 slave2.puppet'
+
+    - name: master.puppet autosign
+      lineinfile:
+        path: /etc/puppetlabs/puppet/puppet.conf
+        line: "{{item}}"
+      with_items:
+        - server = master.puppet
+        - autosign = true
+
+    - name: install code management tool - r10k
+      shell: /opt/puppetlabs/puppet/bin/gem install r10k
+
+    - name: mkdir r10k
+      file:
+        path: /etc/puppetlabs/r10k
+        state: directory
+        mode: '0775'
+
+    - name: create config file r10k.yaml
+      file:
+        path: /etc/puppetlabs/r10k/r10k.yaml
+        state: touch
+
+    - name: set config r10k
+      blockinfile:
+        path: /etc/puppetlabs/r10k/r10k.yaml
+        block: |
+          ---
+          :cachedir: '/var/cache/r10k'
+          :sources:
+            :my-org:
+              remote: 'https://github.com/vechugres/puppet.git'
+              basedir: '/etc/puppetlabs/code/environments'
+
+    - name: schedule r10k
+      cron:
+        name: "r10k"
+        minute: "*/2"
+        job: "/opt/puppetlabs/puppet/bin/r10k deploy environment -p"
+
+    - name: enabled puppetserver service
+      service:
+        name: puppetserver
+        state: restarted
+        enabled: true
+
+    - name: restart puppetserver service
+      service:
+        name: puppetserver
+        state: restarted
+
+    - name: enabled puppetserver agent
+      become: true
+      service:
+        name: puppet
+        state: started
+        enabled: yes
+
+#slaves deploy
+- name: make puppet clients
+  hosts: slaves
+  become: true
+  tasks:
+
+    - name: add puppet server dns
+      lineinfile:
+        path: /etc/hosts
+        line: '192.168.50.5 master.puppet puppet'
+
+    - name: install puppet agent
+      yum:
+       pkg: puppet-agent
+       state: present
+
+    - name: Config puppetserver
+      blockinfile:
+        path: '/etc/puppetlabs/puppet/puppet.conf'
+        block: |
+          [agent]
+          server = puppetserver
+          runinterval = 1m
+
+    - name: enable puppet service
+      service:
+        name: puppet
+        enabled: true
+        state: started
+
+    - name: restart puppet service
+      become: true
+      service:
+        name: puppet
+        state: restarted
