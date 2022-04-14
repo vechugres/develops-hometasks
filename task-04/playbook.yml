@@ -91,12 +91,12 @@
         minute: "*/2"
         job: "/opt/puppetlabs/puppet/bin/r10k deploy environment -p"
 
-   # - name: enable puppet service agent
-   #   become: true
-   #   service:
-   #     name: puppet
-   #     state: started
-   #     enabled: true
+    - name: enable puppet service agent
+      become: true
+      service:
+        name: puppet
+        state: started
+        enabled: true
 
 #slaves deploy
 - name: make puppet clients
