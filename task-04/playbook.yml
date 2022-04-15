@@ -83,13 +83,15 @@
         - '192.168.55.15 slave2.puppet'
 
     - name: set master.puppet agent
-      lineinfile:
+      ini_file:
         path: /etc/puppetlabs/puppet/puppet.conf
-        line: "{{item}}"
+        section: "{{ item.sect }}"
+        option: "{{ item.option }}"
+        value: "{{ item.value }}"
       with_items:
-        - '[agent]'
-        - server = master.puppet
-        - autosign = true
+        - { sect: "server", option: "autosign", value: "true" }
+        - { sect: "agent", option: "server", value: "master.puppet" }
+
 
     - name: enabled puppetserver
       service:
