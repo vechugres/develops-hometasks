@@ -1,6 +1,6 @@
 ---
 #all
-- name: add puppet repo and stoped firewall
+- name: add puppet repo to all
   hosts: all
   become: true
   tasks:
