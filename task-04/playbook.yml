@@ -91,6 +91,7 @@
       with_items:
         - { sect: "server", option: "autosign", value: "true" }
         - { sect: "agent", option: "server", value: "master.puppet" }
+        - { sect: "agent", option: "runinterval", value: "1m" }
 
 
     - name: enabled puppetserver
