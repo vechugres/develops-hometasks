@@ -95,6 +95,12 @@
         state: started
         enabled: true
 
+    - name: enable puppet service
+      service:
+        name: puppet
+        enabled: true
+        state: started
+
 
 #slaves deploy
 - name: make puppet clients
