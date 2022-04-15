@@ -10,17 +10,17 @@
         name: https://yum.puppet.com/puppet7-release-el-8.noarch.rpm
         disable_gpg_check: yes
 
-    - name: disable firewall
-      service:
-        name: firewalld
-        state: stopped
-        enabled: false
-
 #master deploy
 - name: make puppet server
   hosts: master
   become: true
   tasks:
+
+    - name: stop firewalld
+      service:
+        name: firewalld
+        state: stopped
+        enabled: false
 
     - name: install puppetserver and git
       yum:
@@ -29,36 +29,10 @@
           - git
         state: present
 
-    - name: set ram
-      become: yes
-      replace:
-        path: /etc/sysconfig/puppetserver
-        regexp: 'JAVA_ARGS="-Xms2g -Xmx2g'
-        replace: 'JAVA_ARGS="-Xms256m -Xmx256m'
-
-    - name: dns
+    - name: Export PATH
       lineinfile:
-        path: /etc/hosts
-        line: "{{item}}"
-      with_items:
-        - '192.168.55.5 master.puppet'
-        - '192.168.55.10 slave1.puppet'
-        - '192.168.55.15 slave2.puppet'
-
-    - name: master.puppet autosign
-      lineinfile:
-        path: /etc/puppetlabs/puppet/puppet.conf
-        line: "{{item}}"
-      with_items:
-        - server = master.puppet
-        - autosign = true
-
-    - name: enabled puppetserver
-      become: true
-      service:
-        name: puppetserver
-        state: started
-        enabled: true
+        dest: /etc/environment
+        line: "PATH=/home/vagrant/.local/bin:/home/vagrant/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/opt/puppetlabs/bin:/opt/puppetlabs/puppet/bin"
 
     - name: install code management tool - r10k
       shell: /opt/puppetlabs/puppet/bin/gem install r10k
@@ -91,12 +65,36 @@
         minute: "*/2"
         job: "/opt/puppetlabs/puppet/bin/r10k deploy environment -p"
 
-    - name: enable puppet service agent
-      become: true
+    - name: set ram
+      lineinfile:
+        path: '/etc/sysconfig/puppetserver'
+        regexp: '^JAVA_ARGS='
+        line: 'JAVA_ARGS="-Xms256m -Xmx256m"'
+
+    - name: dns
+      lineinfile:
+        path: /etc/hosts
+        line: "{{item}}"
+      with_items:
+        - '192.168.55.5 master.puppet'
+        - '192.168.55.10 slave1.puppet'
+        - '192.168.55.15 slave2.puppet'
+
+    - name: set master.puppet agent
+      lineinfile:
+        path: /etc/puppetlabs/puppet/puppet.conf
+        line: "{{item}}"
+      with_items:
+        - '[agent]'
+        - server = master.puppet
+        - autosign = true
+
+    - name: enabled puppetserver
       service:
-        name: puppet
+        name: puppetserver
         state: started
         enabled: true
+
 
 #slaves deploy
 - name: make puppet clients
@@ -104,26 +102,26 @@
   become: true
   tasks:
 
-    - name: add puppet server dns
-      lineinfile:
-        path: /etc/hosts
-        line: '192.168.50.5 master.puppet'
-
     - name: install puppet agent
       yum:
         pkg: puppet-agent
         state: present
 
-    - name: Config puppetserver
-      blockinfile:
-        path: '/etc/puppetlabs/puppet/puppet.conf'
-        block: |
-          [agent]
-          server = puppetserver
-          runinterval = 1m
+    - name: add puppet server dns
+      lineinfile:
+        path: /etc/hosts
+        line: '192.168.50.5 master.puppet'
+
+    - name: set puppet agent
+      lineinfile:
+        path: /etc/puppetlabs/puppet/puppet.conf
+        line: "{{item}}"
+      with_items:
+        - '[agent]'
+        - server = master.puppet
+        - runinterval = 1m
 
     - name: enable puppet service
-      become: true
       service:
         name: puppet
         enabled: true
