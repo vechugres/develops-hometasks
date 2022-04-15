@@ -67,9 +67,11 @@
 
     - name: set ram
       lineinfile:
-        path: '/etc/sysconfig/puppetserver'
+        path: /etc/sysconfig/puppetserver
         regexp: '^JAVA_ARGS='
-        line: 'JAVA_ARGS="-Xms256m -Xmx256m"'
+        insertbefore: '^JAVA_ARGS='
+        line: 'JAVA_ARGS="-Xms256m -Xmx256m -Djrubby.logger.class-com.pupetlabs.jruby_utils.jruby.Slf4jLogger"'
+        state: present
 
     - name: dns
       lineinfile:
@@ -95,7 +97,7 @@
         state: started
         enabled: true
 
-    - name: enable puppet service
+    - name: enable puppet service on master
       service:
         name: puppet
         enabled: true
@@ -127,7 +129,7 @@
         - server = master.puppet
         - runinterval = 1m
 
-    - name: enable puppet service
+    - name: enable puppet service on slaves
       service:
         name: puppet
         enabled: true
