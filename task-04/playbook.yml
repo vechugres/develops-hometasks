@@ -81,6 +81,7 @@
         - '192.168.55.5 master.puppet'
         - '192.168.55.10 slave1.puppet'
         - '192.168.55.15 slave2.puppet'
+        - '192.168.55.20 minecraft.puppet'
 
     - name: set master.puppet agent
       ini_file:
@@ -121,7 +122,7 @@
     - name: add puppet server dns
       lineinfile:
         path: /etc/hosts
-        line: '192.168.50.5 master.puppet'
+        line: '192.168.55.5 master.puppet'
 
     - name: set puppet agent
       lineinfile:

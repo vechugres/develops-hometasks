@@ -1,9 +1,10 @@
 [master]
-master ansible_host=192.168.50.5 ansible_connection=local
+master ansible_host=192.168.55.5 ansible_connection=local
 
 [slaves]
-slave1 ansible_host=192.168.50.10
-slave2 ansible_host=192.168.50.15
+slave1 ansible_host=192.168.55.10
+slave2 ansible_host=192.168.55.15
+minecraft ansible_host=192.168.55.20
 
 [all:vars]
 ansible_ssh_common_args='-o StrictHostKeyChecking=no'
