@@ -63,7 +63,6 @@ ls -l artifacts/</command>
     </hudson.tasks.ArtifactArchiver>
   </publishers>
   <buildWrappers>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.17"/>
     <org.jenkinsci.plugins.golang.GolangBuildWrapper plugin="golang@1.4">
       <goVersion>GO 1.16</goVersion>
     </org.jenkinsci.plugins.golang.GolangBuildWrapper>
