@@ -53,7 +53,7 @@
         path: "{{ item }}"
         state: directory
       with_items:
-        - /var/lib/jenkins/users/jadmin_15105533403309352910
+        - /var/lib/jenkins/users/jadmin_7909463358859378454
         - /var/lib/jenkins/jobs/gobuild
 
     - name: Copy config files
