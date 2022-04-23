@@ -63,7 +63,7 @@
         remote_src: true
       with_items:
         - { src: '/vagrant/inventory/jenkins/jobs/gobuild/config.xml', dest: '/var/lib/jenkins/jobs/gobuild/config.xml' }
-        - { src: '/vagrant/inventory/jenkins/users/jadmin_15105533403309352910/config.xml', dest: '/var/lib/jenkins/users/jadmin_15105533403309352910/config.xml' }
+        - { src: '/vagrant/inventory/jenkins/users/jadmin_7909463358859378454/config.xml', dest: '/var/lib/jenkins/users/jadmin_7909463358859378454/config.xml' }
         - { src: '/vagrant/inventory/jenkins/users/users.xml', dest: '/var/lib/jenkins/users/users.xml' }
         - { src: '/vagrant/inventory/jenkins/config.xml', dest: '/var/lib/jenkins/config.xml' }
         - { src: '/vagrant/inventory/jenkins/org.jenkinsci.plugins.golang.GolangBuildWrapper.xml', dest: '/var/lib/jenkins/' }
