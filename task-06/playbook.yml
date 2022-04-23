@@ -1,0 +1,106 @@
+---
+- name: instal and configure jenkins
+  hosts: jenkins
+  become: true
+  tasks:
+#jenkins vars and ansible-galaxy
+    - include_tasks: inventory/vars.yml
+
+    #- name: install ansible-galaxy collection install community.general
+    #  shell: ansible-galaxy collection install community.general
+#os preparation
+    - name: apt update
+      shell: apt update
+
+    - name: upgrade the OS
+      apt:
+        upgrade: dist
+
+    - name: install  pkg's
+      apt:
+        pkg:
+        - git
+        - build-essential
+        - default-jre
+        state: latest
+#add jenkins's repo and install jenkins
+    - name: ensure the jenkins apt repository key is installed
+      apt_key:
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
+        state: present
+
+    - name: ensure the repository is configured
+      apt_repository:
+        repo: deb https://pkg.jenkins.io/debian-stable binary/
+        state: present
+
+    - name: install jenkins
+      apt:
+        name: jenkins
+        state: latest
+#jenkins gonfiguration
+    - name: install python
+      pip:
+        name:
+          - python-jenkins
+          - lxml
+
+    - name: jenkins needs to rest
+      service:
+        name: jenkins
+        state: stopped
+
+    - name: mkdir users and jobs
+      file:
+        path: "{{ item }}"
+        state: directory
+      with_items:
+        - /var/lib/jenkins/users/jadmin_15105533403309352910
+        - /var/lib/jenkins/jobs/gobuild
+
+    - name: Copy config files
+      copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+      with_items:
+        - { src: "/vagrant/jenkins/jobs/gobuild/config.xml", dest: "/var/lib/jenkins/jobs/gobuild/config.xml" }
+        - { src: "/vagrant/jenkins/users/jadmin_15105533403309352910/config.xml", dest: "/var/lib/jenkins/users/jadmin_15105533403309352910/config.xml" }
+        - { src: "/vagrant/jenkins/users/users.xml", dest: "/var/lib/jenkins/users/users.xml" }
+        - { src: "/vagrant/jenkins/config.xml", dest: "/var/lib/jenkins/config.xml" }
+        - { src: "/vagrant/jenkins/org.jenkinsci.plugins.golang.GolangBuildWrapper.xml", dest: "/var/lib/jenkins/" }
+
+
+    - name: enabled jenkins
+      service:
+        name: jenkins
+        state: started
+        enabled: true
+
+    - name: install plugins
+      jenkins_plugin:
+        name: "{{ item }}"
+        url_username: "{{ jenkins_user }}"
+        url_password: "{{ jenkins_passw }}"
+        url: "{{ jenkins_url }}"
+        with_dependencies: yes
+      with_items:
+        - timestamper
+        - git
+        - github
+        - golang
+        - Pipeline
+        - nexus-artifact-uploader
+
+    - name: restarted jenkins
+      service:
+        name: jenkins
+        state: restarted
+#do first build
+    - name: my build
+      community.general.jenkins_build:
+        name: gobuild
+        build_number: 1
+        state: present
+        user: "{{ jenkins_user }}"
+        password: "{{ jenkins_passw }}"
+        url: "{{ jenkins_url }}"
