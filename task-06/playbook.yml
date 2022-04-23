@@ -3,11 +3,8 @@
   hosts: jenkins
   become: true
   tasks:
-#jenkins vars and ansible-galaxy
-    - include_tasks: inventory/vars.yml
-
-    #- name: install ansible-galaxy collection install community.general
-    #  shell: ansible-galaxy collection install community.general
+#jenkins vars
+    - include_vars: inventory/vars.yml
 #os preparation
     - name: apt update
       shell: apt update
@@ -22,6 +19,7 @@
         - git
         - build-essential
         - default-jre
+        - python3-pip
         state: latest
 #add jenkins's repo and install jenkins
     - name: ensure the jenkins apt repository key is installed
@@ -62,13 +60,28 @@
       copy:
         src: "{{ item.src }}"
         dest: "{{ item.dest }}"
+        remote_src: true
       with_items:
-        - { src: "/vagrant/jenkins/jobs/gobuild/config.xml", dest: "/var/lib/jenkins/jobs/gobuild/config.xml" }
-        - { src: "/vagrant/jenkins/users/jadmin_15105533403309352910/config.xml", dest: "/var/lib/jenkins/users/jadmin_15105533403309352910/config.xml" }
-        - { src: "/vagrant/jenkins/users/users.xml", dest: "/var/lib/jenkins/users/users.xml" }
-        - { src: "/vagrant/jenkins/config.xml", dest: "/var/lib/jenkins/config.xml" }
-        - { src: "/vagrant/jenkins/org.jenkinsci.plugins.golang.GolangBuildWrapper.xml", dest: "/var/lib/jenkins/" }
 
+        - { src: '/vagrant/inventory/jenkins/users/jadmin_15105533403309352910/config.xml', dest: '/var/lib/jenkins/users/jadmin_15105533403309352910/config.xml' }
+        - { src: '/vagrant/inventory/jenkins/users/users.xml', dest: '/var/lib/jenkins/users/users.xml' }
+        - { src: '/vagrant/inventory/jenkins/config.xml', dest: '/var/lib/jenkins/config.xml' }
+        - { src: '/vagrant/inventory/jenkins/org.jenkinsci.plugins.golang.GolangBuildWrapper.xml', dest: '/var/lib/jenkins/' }
+        - { src: '/vagrant/inventory/jenkins/jobs/gobuild/config.xml', dest: '/var/lib/jenkins/jobs/gobuild/config.xml' }
+
+    - name: Disable start wizard
+      lineinfile:
+         path: "{{ item.path }}"
+         state: present
+         regexp: "{{ item.exp }}"
+         line: "{{ item.n_ln }}"
+      with_items:
+        - { path: "/lib/systemd/system/jenkins.service", exp: '^Environment="JAVA_OPTS=-Djava.awt.headless=true"', n_ln: 'Environment="JAVA_OPTS=-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false"' }
+        - { path: "/etc/default/jenkins", exp: '^JAVA_ARGS="-Djava.awt.headless=true"', n_ln: 'JAVA_ARGS="-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false"' }
+
+    - name: reload systemd
+      systemd:
+        daemon_reload: yes
 
     - name: enabled jenkins
       service:
@@ -96,9 +109,14 @@
         name: jenkins
         state: restarted
 #do first build
-    - name: my build
+
+    #- name: install ansible-galaxy collection install community.general
+    #  shell: ansible-galaxy collection install community.general
+
+
+    - name: make build
       community.general.jenkins_build:
-        name: gobuild
+        name: "gobuild"
         build_number: 1
         state: present
         user: "{{ jenkins_user }}"
