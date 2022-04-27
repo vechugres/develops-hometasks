@@ -9,9 +9,9 @@
     - name: apt update
       shell: apt update
 
-    - name: upgrade the OS
-      apt:
-        upgrade: dist
+#    - name: upgrade the OS
+#      apt:
+#        upgrade: dist
 
     - name: install  pkg's
       apt:
@@ -52,6 +52,9 @@
       file:
         path: "{{ item }}"
         state: directory
+        group: jenkins
+        owner: jenkins
+        mode: '0755'
       with_items:
         - /var/lib/jenkins/users/jadmin_7909463358859378454
         - /var/lib/jenkins/jobs/mygobuild
@@ -60,7 +63,10 @@
       copy:
         src: "{{ item.src }}"
         dest: "{{ item.dest }}"
-        remote_src: true
+        group: jenkins
+        owner: jenkins
+        mode: '0755'
+        force: true
       with_items:
         - { src: '/vagrant/inventory/jenkins/jobs/mygobuild/config.xml', dest: '/var/lib/jenkins/jobs/mygobuild/config.xml' }
         - { src: '/vagrant/inventory/jenkins/users/jadmin_7909463358859378454/config.xml', dest: '/var/lib/jenkins/users/jadmin_7909463358859378454/config.xml' }
