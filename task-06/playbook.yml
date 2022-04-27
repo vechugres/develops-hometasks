@@ -1,4 +1,5 @@
 ---
+#JENKINS
 - name: instal and configure jenkins
   hosts: jenkins
   become: true
@@ -122,3 +123,66 @@
         user: "{{ jenkins_user }}"
         password: "{{ jenkins_passw }}"
         url: "{{ jenkins_url }}"
+
+#NEXUS
+- name: Install Nexus
+  hosts: nexus
+  become: true
+
+  tasks:
+    - name: install Java
+      yum:
+        name: java-1.8.0-openjdk
+        state: present
+
+    - name: download Nexus
+      get_url:
+        url: https://download.sonatype.com/nexus/3/nexus-3.38.1-01-unix.tar.gz
+        checksum: md5:d3d2e8ebef0816f412b66fe7a374f923
+        dest: /opt/nexus3.tar.gz
+
+    - name: create workdir
+      file:
+        path: /opt/nexus
+        state: directory
+
+    - name: unpack Nexus
+      unarchive:
+        src: /opt/nexus3.tar.gz
+        dest: /opt/nexus/
+
+    - name: find last release
+      find:
+        file_type: directory
+        patterns: 'nexus*'
+        path: /opt/nexus
+      register: nexus_path
+
+    - name: create nexus symlink
+      file:
+        path: /opt/nexus/nexus
+        state: link
+        src: "{{ nexus_path.files[0]['path'] }}"
+      when: nexus_path.matched > 0
+
+    - name: copy environment file
+      copy:
+        src: inventory/nexus/nexus-server
+        dest: /etc/default/nexus-server
+
+    - name: copy systemd file
+      copy:
+        src: nexus.service
+        dest: /etc/systemd/system/nexus.service
+
+    - name: start Nexus service
+      systemd:
+        name: nexus
+        enabled: true
+        state: started
+
+    - name: stop firewall
+      systemd:
+        name: firewalld
+        enabled: false
+        state: stopped
