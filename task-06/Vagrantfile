@@ -30,7 +30,7 @@ SHELL
     nexus.vm.provision "shell", inline: <<-SHELL
       sed -i "s/^PasswordAuthentication no\$/PasswordAuthentication yes/g" /etc/ssh/sshd_config
       service sshd restart
-      echo -e "vagrant\nvagrant" | passwd vagrant
+      echo -e "vagrant\nvagrant" | passwd vagrant 
 SHELL
   end
 

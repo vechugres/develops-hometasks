@@ -1,12 +1,12 @@
 [jenkins]
-jenkins ansible_host=192.168.55.5 ansible_connection=local
+jenkins.vm ansible_host=192.168.55.5 ansible_connection=local
 
 [nexus]
-nexus ansible_host=192.168.55.10
+nexus.vm ansible_host=192.168.55.10
 
 [slaves]
-staging ansible_host=192.168.55.15
-production ansible_host=192.168.55.20
+staging.vm ansible_host=192.168.55.15
+production.vm ansible_host=192.168.55.20
 
 [all:vars]
 ansible_ssh_common_args='-o StrictHostKeyChecking=no'
