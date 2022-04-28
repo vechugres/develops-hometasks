@@ -134,34 +134,34 @@
 - hosts: slaves
   become: true
   tasks:
-  - name: make service wordcloud.service
-    community.general.ini_file:
-      path: /etc/systemd/system/wordcloud.service
-      section: "{{ item.section }}"
-      option: "{{ item.option }}"
-      value: "{{ item.value }}"
-      mode: '0600'
-    loop:
-    - { section: 'Unit', option: 'Description', value: 'Word Cloud Generator' }
-    - { section: 'Service', option: 'WorkingDirectory', value: '/opt/wordcloud' }
-    - { section: 'Service', option: 'ExecStart', value: '/opt/wordcloud/word-cloud-generator' }
-    - { section: 'Service', option: 'Restart', value: 'always' }
-    - { section: 'Install',option: 'WantedBy', value: 'multi-user.target' }
+    - name: make service wordcloud.service
+      community.general.ini_file:
+        path: /etc/systemd/system/wordcloud.service
+        section: "{{ item.section }}"
+        option: "{{ item.option }}"
+        value: "{{ item.value }}"
+        mode: '0600'
+      loop:
+      - { section: 'Unit', option: 'Description', value: 'Word Cloud Generator' }
+      - { section: 'Service', option: 'WorkingDirectory', value: '/opt/wordcloud' }
+      - { section: 'Service', option: 'ExecStart', value: '/opt/wordcloud/word-cloud-generator' }
+      - { section: 'Service', option: 'Restart', value: 'always' }
+      - { section: 'Install',option: 'WantedBy', value: 'multi-user.target' }
 
-  - name: mkdir /opt/wordcloud
-    ansible.builtin.file:
-      path: '/opt/wordcloud'
-      state: directory
-      owner: 'vagrant'
-      group: 'vagrant'
-      mode: '0755'
+    - name: mkdir /opt/wordcloud
+      ansible.builtin.file:
+        path: '/opt/wordcloud'
+        state: directory
+        owner: 'vagrant'
+        group: 'vagrant'
+        mode: '0755'
+
+    - name: enable nexus service
+      systemd:
+        name: wordcloud.service
+        enabled: true
 
   tags: slaves
-
-  - name: enable nexus service
-    systemd:
-      name: wordcloud.service
-      enabled: true
 
 #NEXUS
 - name: install Nexus
@@ -181,8 +181,17 @@
         name: adoptopenjdk-8-hotspot-jre
         state: present
 
+    - name: ensure group nexus exists
+      group:
+        name: nexus
+        state: present
+
+    - name: create nexus user
+      user:
+        name: nexus
+        group: nexus
+
     - name: download Nexus
-      become_user: root
       get_url:
         url: https://download.sonatype.com/nexus/3/nexus-3.38.1-01-unix.tar.gz
         checksum: md5:d3d2e8ebef0816f412b66fe7a374f923
@@ -199,27 +208,10 @@
         dest: '/opt/'
         remote_src: true
 
-    - name: find last release
-      find:
-        file_type: directory
-        patterns: 'nexus*'
-        path: /opt/nexus
-      register: nexus_path
-
-    - name: create nexus symlink
-      file:
-        path: /opt/nexus/nexus
-        state: link
-        src: "{{ nexus_path.files[0]['path'] }}"
-      when: nexus_path.matched > 0
-
     - name: copy environment file
       copy:
         src: inventory/nexus/nexus-server
         dest: /etc/default/nexus-server
-
-    - name: disable UFW
-      shell: ufw disable
 
     - name: copy systemd file
       copy:
