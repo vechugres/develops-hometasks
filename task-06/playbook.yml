@@ -21,6 +21,7 @@
         - build-essential
         - default-jre
         - python3-pip
+        - sshpass
         state: latest
 #add jenkins's repo and install jenkins
     - name: ensure the jenkins apt repository key is installed
@@ -124,16 +125,24 @@
         user: "{{ jenkins_user }}"
         password: "{{ jenkins_passw }}"
         url: "{{ jenkins_url }}"
-
+      tags: build
 #NEXUS
 - name: install Nexus
   hosts: nexus
   become: true
 
   tasks:
-    - name: install Java
+    - name: add key java 8 for drbian 11
+      apt_key:
+        url: https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public
+    - apt_repository:
+        repo: deb https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/ bullseye main
+        state: present
+        update_cache: true
+
+    - name: Install OpenJDK 8
       apt:
-        name: java-1.8.0-openjdk
+        name: adoptopenjdk-8-hotspot-jre
         state: present
 
     - name: download Nexus
