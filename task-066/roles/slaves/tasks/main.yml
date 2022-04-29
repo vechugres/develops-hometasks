@@ -1,0 +1,35 @@
+---
+#SLAVES
+
+    - name: install jq
+      apt:
+        name: jq
+        state: latest
+
+    - name: make service wordcloud.service
+      community.general.ini_file:
+        path: /etc/systemd/system/wordcloud.service
+        section: "{{ item.section }}"
+        option: "{{ item.option }}"
+        value: "{{ item.value }}"
+        mode: '0600'
+      loop:
+      - { section: 'Unit', option: 'Description', value: 'Word Cloud Generator' }
+      - { section: 'Service', option: 'WorkingDirectory', value: '/opt/wordcloud' }
+      - { section: 'Service', option: 'ExecStart', value: '/opt/wordcloud/word-cloud-generator' }
+      - { section: 'Service', option: 'Restart', value: 'always' }
+      - { section: 'Install',option: 'WantedBy', value: 'multi-user.target' }
+
+    - name: mkdir /opt/wordcloud
+      ansible.builtin.file:
+        path: '/opt/wordcloud'
+        state: directory
+        owner: 'vagrant'
+        group: 'vagrant'
+        mode: '0755'
+
+    - name: enable nexus service
+      systemd:
+        name: wordcloud.service
+        enabled: true
+

@@ -1,0 +1,126 @@
+---
+#JENKINS
+
+#vars
+    - include_vars: inventory/vars.yml
+#os preparation
+    - name: apt update
+      shell: apt update
+
+    #- name: upgrade the OS
+    #  apt:
+    #    upgrade: dist
+
+    - name: install  pkg's
+      apt:
+        pkg:
+        - git
+        - build-essential
+        - default-jre
+        - python3-pip
+        - sshpass
+        - jq
+        state: latest
+#add jenkins's repo and install jenkins
+    - name: ensure the jenkins apt repository key is installed
+      apt_key:
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
+        state: present
+
+    - name: ensure the repository is configured
+      apt_repository:
+        repo: deb https://pkg.jenkins.io/debian-stable binary/
+        state: present
+
+    - name: install jenkins
+      apt:
+        name: jenkins
+        state: latest
+#jenkins gonfiguration
+    - name: install python
+      pip:
+        name:
+          - python-jenkins
+          - lxml
+
+    - name: jenkins needs to rest
+      service:
+        name: jenkins
+        state: stopped
+
+    - name: mkdir users and jobs
+      file:
+        path: "{{ item }}"
+        state: directory
+        group: jenkins
+        owner: jenkins
+        mode: '0755'
+      with_items:
+        - /var/lib/jenkins/users/jadmin_7909463358859378454
+        - /var/lib/jenkins/jobs/mygobuild
+
+    - name: Copy config files
+      copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        group: jenkins
+        owner: jenkins
+        mode: '0755'
+        force: true
+      with_items:
+        - { src: '/vagrant/roles/jenkins/files/jobs/mygobuild/config.xml', dest: '/var/lib/jenkins/jobs/mygobuild/config.xml' }
+        - { src: '/vagrant/roles/jenkins/files/users/jadmin_7909463358859378454/config.xml', dest: '/var/lib/jenkins/users/jadmin_7909463358859378454/config.xml' }
+        - { src: '/vagrant/roles/jenkins/files/users/users.xml', dest: '/var/lib/jenkins/users/users.xml' }
+        - { src: '/vagrant/roles/jenkins/files/config.xml', dest: '/var/lib/jenkins/config.xml' }
+        - { src: '/vagrant/roles/jenkins/files/org.jenkinsci.plugins.golang.GolangBuildWrapper.xml', dest: '/var/lib/jenkins/' }
+
+    - name: disable wizard
+      lineinfile:
+         path: "{{ item.path }}"
+         state: present
+         regexp: "{{ item.exp }}"
+         line: "{{ item.n_ln }}"
+      with_items:
+        - { path: "/lib/systemd/system/jenkins.service", exp: '^Environment="JAVA_OPTS=-Djava.awt.headless=true"', n_ln: 'Environment="JAVA_OPTS=-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false"' }
+        - { path: "/etc/default/jenkins", exp: '^JAVA_ARGS="-Djava.awt.headless=true"', n_ln: 'JAVA_ARGS="-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false"' }
+
+    - name: reload systemd
+      systemd:
+        daemon_reload: true
+
+    - name: enabled jenkins
+      service:
+        name: jenkins
+        state: started
+        enabled: true
+
+    - name: install plugins
+      jenkins_plugin:
+        name: "{{ item }}"
+        url_username: "{{ jenkins_user }}"
+        url_password: "{{ jenkins_passw }}"
+        url: "{{ jenkins_url }}"
+        with_dependencies: true
+      with_items:
+        - timestamper
+        - git
+        - github
+        - golang
+        - Pipeline
+        - nexus-artifact-uploader
+        - ssh
+
+    - name: restarted jenkins
+      service:
+        name: jenkins
+        state: restarted
+#do first build
+    - name: make build
+      community.general.jenkins_build:
+        name: "mygobuild"
+        build_number: 1
+        state: present
+        user: "{{ jenkins_user }}"
+        password: "{{ jenkins_passw }}"
+        url: "{{ jenkins_url }}"
+    

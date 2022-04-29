@@ -1,0 +1,65 @@
+---
+#NEXUS
+
+#vars
+    - include_vars: inventory/vars.yml
+ 
+    - name: add key java 8
+      apt_key:
+        url: https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public
+    - apt_repository:
+        repo: deb https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/ bullseye main
+        state: present
+        update_cache: true
+
+    - name: install OpenJDK 8
+      apt:
+        name: adoptopenjdk-8-hotspot-jre
+        state: present
+
+    - name: ensure group nexus exists
+      group:
+        name: nexus
+        state: present
+
+    - name: create nexus user
+      user:
+        name: nexus
+        group: nexus
+
+    - name: download Nexus
+      get_url:
+        url: https://download.sonatype.com/nexus/3/nexus-3.38.1-01-unix.tar.gz
+        checksum: md5:d3d2e8ebef0816f412b66fe7a374f923
+        dest: /opt/nexus3.tar.gz
+
+    - name: create workdir
+      file:
+        path: /opt/nexus
+        state: directory
+
+    - name: extract
+      ansible.builtin.unarchive:
+        src: "https://download.sonatype.com/nexus/3/nexus-3.38.1-01-unix.tar.gz"
+        dest: '/opt/'
+        remote_src: true
+
+    - name: copy environment file
+      copy:
+        src: /vagrant/roles/nexus/files/nexus-server
+        dest: /etc/default/nexus-server
+
+    - name: copy systemd file
+      copy:
+        src: /vagrant/roles/nexus/files/nexus.service
+        dest: /etc/systemd/system/nexus.service
+
+    - name: reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: start Nexus service
+      systemd:
+        name: nexus
+        enabled: true
+        state: started

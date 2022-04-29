@@ -1,0 +1,21 @@
+---
+- name: install jenkins
+  hosts: jenkins
+  become: true
+  roles:
+    - role: '/vagrant/roles/jenkins'
+  tags: jen
+
+- name: configuring production, staging
+  hosts: slaves
+  become: true
+  roles:
+    - role: '/vagrant/roles/slaves' 
+  tags: sla
+
+- name: install nexus
+  hosts: nexus
+  become: true
+  roles:
+    - role: '/vagrant/roles/nexus' 
+  tags: nex
