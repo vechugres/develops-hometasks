@@ -32,6 +32,7 @@
         url: https://download.sonatype.com/nexus/3/nexus-3.38.1-01-unix.tar.gz
         checksum: md5:d3d2e8ebef0816f412b66fe7a374f923
         dest: /opt/nexus3.tar.gz
+      tags: nex
 
     - name: create workdir
       file:
@@ -43,6 +44,7 @@
         src: "https://download.sonatype.com/nexus/3/nexus-3.38.1-01-unix.tar.gz"
         dest: '/opt/'
         remote_src: true
+      tags: ext
 
     - name: copy environment file
       copy:
