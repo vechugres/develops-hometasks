@@ -241,20 +241,13 @@
         enabled: true
         state: started
 
-    - name: select nexus password after install
-      shell: "cat /opt/sonatype-work/nexus3/admin.password"
-      register: nexus_password
-      until: nexus_password.stdout != ''
-      retries: 100
-      delay: 2
-
     - name: create Nexus repositosies if not exist
       uri:
         url: "{{ nexus_api_url }}/repositories/raw/hosted/{{ nexus_repository }}"
         method: GET
         force_basic_auth: yes
-        user: "{{ nexus_user }}"
-        password: "{{ nexus_password.stdout }}"
+        user: admin
+        password: admin
         body_format: json
         headers:
           Accept: application/json
@@ -272,8 +265,8 @@
         url: "{{ nexus_api_url }}/repositories/raw/hosted"
         method: POST
         force_basic_auth: yes
-        user: "{{ nexus_user }}"
-        password: "{{ nexus_password.stdout }}"
+        user: admin
+        password: admin
         body_format: json
         headers:
           Accept: application/json
