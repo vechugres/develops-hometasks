@@ -134,6 +134,12 @@
 - hosts: slaves
   become: true
   tasks:
+
+    - name: install jq
+      apt:
+        name: jq
+        state: latest
+
     - name: make service wordcloud.service
       community.general.ini_file:
         path: /etc/systemd/system/wordcloud.service
@@ -167,8 +173,15 @@
 - name: install Nexus
   hosts: nexus
   become: true
+
+  vars:
+    nexus_version: nexus-3.38.1-01
+    nexus_user: admin
+    nexus_api_url: http://192.168.55.10:8081/service/rest/v1
+    nexus_repository: word-cloud-build
+
   tasks:
-    - name: add key java 8 for drbian 11
+    - name: add key java 8
       apt_key:
         url: https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public
     - apt_repository:
@@ -176,7 +189,7 @@
         state: present
         update_cache: true
 
-    - name: Install OpenJDK 8
+    - name: install OpenJDK 8
       apt:
         name: adoptopenjdk-8-hotspot-jre
         state: present
@@ -227,5 +240,59 @@
         name: nexus
         enabled: true
         state: started
+
+    - name: select nexus password after install
+      shell: "cat /opt/sonatype-work/nexus3/admin.password"
+      register: nexus_password
+      until: nexus_password.stdout != ''
+      retries: 100
+      delay: 2
+
+    - name: create Nexus repositosies if not exist
+      uri:
+        url: "{{ nexus_api_url }}/repositories/raw/hosted/{{ nexus_repository }}"
+        method: GET
+        force_basic_auth: yes
+        user: "{{ nexus_user }}"
+        password: "{{ nexus_password.stdout }}"
+        body_format: json
+        headers:
+          Accept: application/json
+        status_code:
+        - 404
+        - 200
+      register: repository
+      until: repository.status == 200 or repository.status == 404
+      retries: 100
+      delay: 2
+      tags: repo
+
+    - name: create nexus repositories
+      uri:
+        url: "{{ nexus_api_url }}/repositories/raw/hosted"
+        method: POST
+        force_basic_auth: yes
+        user: "{{ nexus_user }}"
+        password: "{{ nexus_password.stdout }}"
+        body_format: json
+        headers:
+          Accept: application/json
+          Content-Type: application/json
+        body:
+          name: "{{ nexus_repository }}"
+          online: true
+          storage:
+            blobStoreName: default
+            strictContentTypeValidation: true
+            writePolicy: allow_once
+          cleanup:
+            policyNames: ["string"]
+          component:
+            proprietaryComponents: true
+          raw:
+            contentDisposition: ATTACHMENT
+        status_code: 201
+      when: repository.status != 200
+      tags: repo
 
   tags: nexus
