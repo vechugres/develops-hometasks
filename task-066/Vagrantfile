@@ -27,7 +27,7 @@ SHELL
   config.vm.define "nexus.vm" do |nexus|
     nexus.vm.network "private_network", ip: "192.168.55.10"
     nexus.vm.provider "virtualbox" do |vb|
-      vb.memory = "1024"
+      vb.memory = "2048"
       vb.cpus = "2"
     end
     nexus.vm.provision "shell", inline: <<-SHELL

@@ -10,12 +10,75 @@
   hosts: slaves
   become: true
   roles:
-    - role: '/vagrant/roles/slaves' 
+    - role: '/vagrant/roles/slaves'
   tags: sla
+# my role
+#- name: install nexus
+#  hosts: nexus
+#  become: true
+#  roles:
+#    - role: '/vagrant/roles/nexus'
+#  tags: nex
 
-- name: install nexus
+- name: create repos, roles and users on nexus
   hosts: nexus
-  become: true
+  become: yes
+  pre_tasks:
+      - apt:
+          pkg:
+          - gpg
+          state: present
+      - apt_key:
+          url: https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public
+      - apt_repository:
+          repo: deb https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/ buster main
+          state: present
+          update_cache: true
+
+  vars:
+    java_packages:
+       - adoptopenjdk-8-hotspot-jre
+    nexus_public_hostname: 'nexus'
+    nexus_admin_password: "admin"
+    nexus_annonymous_access: yes
+    nexus_config_maven: false
+    nexus_config_raw: true
+    nexus_repos_raw_hosted:
+      - name: word-cloud-builds
+        strict_content_validation: false
+        version_policy: release
+        write_policy: allow
+    nexus_roles:
+      - id: upload
+        name: upload
+        description: all uploaders
+        privileges:
+          - nx-repository-view-*-*-edit
+        roles: []
+      - id: download
+        name: download
+        description: all downloaders
+        privileges:
+          - nx-repository-view-*-*-read
+        roles: []
+    nexus_local_users:
+      - username: uploader
+        state: present
+        first_name: uploader
+        last_name: loader
+        email: support@company.com
+        password: "uploader"
+        roles:
+          - upload
+      - username: downloader
+        state: present
+        first_name: downloader
+        last_name: loader
+        email: support@company.com
+        password: "downloader"
+        roles:
+          - download
   roles:
-    - role: '/vagrant/roles/nexus' 
-  tags: nex
+    - role: java
+    - role: nexus3
+  tags: nex3

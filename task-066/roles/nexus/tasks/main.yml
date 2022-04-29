@@ -3,7 +3,7 @@
 
 #vars
     - include_vars: inventory/vars.yml
- 
+
     - name: add key java 8
       apt_key:
         url: https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public
