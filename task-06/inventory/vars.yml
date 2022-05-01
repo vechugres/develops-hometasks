@@ -1,6 +1,0 @@
----
-
-    ansible_python_interpreter: /usr/bin/python3
-    jenkins_user: jadmin
-    jenkins_passw: jadmin
-    jenkins_url: http://192.168.55.5:8080
