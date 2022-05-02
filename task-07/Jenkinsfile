@@ -8,7 +8,7 @@
 
                 stages {
 
-                    stage("cloning git") {
+                    stage("git clone") {
                         steps {
                                 git url: 'https://github.com/Fenikks/word-cloud-generator'
             }
@@ -40,7 +40,7 @@
 
                     stage('upload to nexus') {
                         steps {
-                                nexusArtifactUploader artifacts: [[artifactId: 'word-cloud-generator', classifier: '', file: 'artifacts/word-cloud-generator', type: 'gz']], credentialsId: 'nexus-creds', groupId: "$git_branch", nexusUrl: "192.168.55.101:8081", nexusVersion: 'nexus3', protocol: 'http', repository: 'word-cloud-build', version: '1.$BUILD_NUMBER'
+                                nexusArtifactUploader artifacts: [[artifactId: 'word-cloud-generator', classifier: '', file: 'artifacts/word-cloud-generator', type: 'gz']], credentialsId: 'nexus-creds', groupId: "$git_branch", nexusUrl: "192.168.33.90:8081", nexusVersion: 'nexus3', protocol: 'http', repository: 'word-cloud-build', version: '1.$BUILD_NUMBER'
                 }
             }
 
@@ -48,7 +48,7 @@
                         steps {
                                 sh '''
                                     sshpass -p 'vagrant' ssh vagrant@192.168.33.80 -o StrictHostKeyChecking=no " cd /opt/wordcloud/
-                                    sudo curl -u downloader:downloader -X GET "http://192.168.55.101:8081/repository/world-cloud-build/1/world-cloud-generator/1.$BUILD_NUMBER/world-cloud-generator-1.$BUILD_NUMBER.gz" -o /opt/wordcloud/word-cloud-generator.gz
+                                    sudo curl -u downloader:downloader -X GET "http://192.168.33.90:8081/repository/world-cloud-build/1/world-cloud-generator/1.$BUILD_NUMBER/world-cloud-generator-1.$BUILD_NUMBER.gz" -o /opt/wordcloud/word-cloud-generator.gz
                                     if [[ $? -ne 0 ]];
                                     then
                                         echo "File not found"
@@ -67,21 +67,21 @@
                         steps {
                             parallel {
                                 stage ("test1") {
-                                    sh  '''res=`curl -s -H "Content-Type: application/json" -d '{"text":"ths is a really really really important thing this is"}' http://192.168.55.102:8888/version | jq '. | length'`
+                                    sh  '''res=`curl -s -H "Content-Type: application/json" -d '{"text":"ths is a really really really important thing this is"}' http://192.168.33.80:8888/version | jq '. | length'`
                             if [ "1" != "$res" ]; then
                             exit 99
                             fi
-                            res=`curl -s -H "Content-Type: application/json" -d '{"text":"ths is a really really really important thing this is"}' http://192.168.55.102:8888/api | jq '. | length'`
+                            res=`curl -s -H "Content-Type: application/json" -d '{"text":"ths is a really really really important thing this is"}' http://192.168.33.80:8888/api | jq '. | length'`
                             if [ "7" != "$res" ]; then
                             exit 99
                             fi'''
                                 }
                                 stage ("test2") {
-                                    sh  '''res=`curl -s -H "Content-Type: application/json" -d '{"text":"ths is a really really really important thing this is"}' http://192.168.55.102:8888/version | jq '. | length'`
+                                    sh  '''res=`curl -s -H "Content-Type: application/json" -d '{"text":"ths is a really really really important thing this is"}' http://192.168.33.80:8888/version | jq '. | length'`
                             if [ "1" != "$res" ]; then
                             exit 99
                             fi
-                            res=`curl -s -H "Content-Type: application/json" -d '{"text":"ths is a really really really important thing this is"}' http://192.168.55.102:8888/api | jq '. | length'`
+                            res=`curl -s -H "Content-Type: application/json" -d '{"text":"ths is a really really really important thing this is"}' http://192.168.33.80:8888/api | jq '. | length'`
                             if [ "7" != "$res" ]; then
                             exit 99
                             fi'''
@@ -94,7 +94,7 @@
                                     steps {
                                         sh '''
                                         sshpass -p 'vagrant' ssh vagrant@${stage} -o StrictHostKeyChecking=no " cd /opt/wordcloud/
-                                        sudo curl -u downloader:downloader -X GET "http://192.168.55.101/repository/world-cloud-build/$git_branch/world-cloud-generator/1.$BUILD_NUMBER/world-cloud-generator-1.$BUILD_NUMBER.gz" -o /opt/wordcloud/word-cloud-generator.gz
+                                        sudo curl -u downloader:downloader -X GET "http://192.168.33.90/repository/world-cloud-build/$git_branch/world-cloud-generator/1.$BUILD_NUMBER/world-cloud-generator-1.$BUILD_NUMBER.gz" -o /opt/wordcloud/word-cloud-generator.gz
                                         if [[ $? -ne 0 ]];
                                             then
                                                 echo "File not found"
