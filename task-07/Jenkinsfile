@@ -13,12 +13,12 @@ pipeline {
             }
         }
 
-        stage('tests') {
-            steps {
-                sh '''make lint
-                      make test '''
-            }
-        }
+        #stage('tests') {
+        #    steps {
+        #        sh '''make lint
+        #              make test '''
+        #    }
+        #}
 
         stage('build') {
             steps {
