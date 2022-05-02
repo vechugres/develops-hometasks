@@ -1,20 +1,19 @@
-    pipeline {
+pipeline {
     
         agent any
 
              tools {
-                go 'GO 1.16'
-            }
-
+                go 'Go 1.16'
+             }
                 stages {
 
-                    stage("git clone") {
+                    stage("cloning git") {
                         steps {
                                 git url: 'https://github.com/Fenikks/word-cloud-generator'
             }
         }
 
-                        stage('lint and test') {
+                        stage('Check code and test') {
                             steps {
                                     sh '''make lint
                                           make test '''
@@ -38,7 +37,7 @@
             }
         }
 
-                    stage('upload to nexus') {
+                     stage('upload to nexus') {
                         steps {
                                 nexusArtifactUploader artifacts: [[artifactId: 'word-cloud-generator', classifier: '', file: 'artifacts/word-cloud-generator', type: 'gz']], credentialsId: 'nexus-creds', groupId: "*/master", nexusUrl: "192.168.33.90:8081", nexusVersion: 'nexus3', protocol: 'http', repository: 'word-cloud-build', version: '1.$BUILD_NUMBER'
                 }
@@ -63,10 +62,10 @@
                 }
             }
 
-                    stage('parallel tests') {
-                        steps {
-                            parallel {
-                                stage ("test1") {
+                    stage ('parallel tests') {
+                        parallel {
+                                stage ("test1"){
+                                    steps {
                                     sh  '''res=`curl -s -H "Content-Type: application/json" -d '{"text":"ths is a really really really important thing this is"}' http://192.168.33.80:8888/version | jq '. | length'`
                             if [ "1" != "$res" ]; then
                             exit 99
@@ -76,7 +75,9 @@
                             exit 99
                             fi'''
                                 }
-                                stage ("test2") {
+                            }
+                                stage ("test2"){
+                                    steps {
                                     sh  '''res=`curl -s -H "Content-Type: application/json" -d '{"text":"ths is a really really really important thing this is"}' http://192.168.33.80:8888/version | jq '. | length'`
                             if [ "1" != "$res" ]; then
                             exit 99
@@ -93,8 +94,8 @@
                                 stage('on prod') {
                                     steps {
                                         sh '''
-                                        sshpass -p 'vagrant' ssh vagrant@${stage} -o StrictHostKeyChecking=no " cd /opt/wordcloud/
-                                        sudo curl -u downloader:downloader -X GET "http://192.168.33.90/repository/world-cloud-build/$git_branch/world-cloud-generator/1.$BUILD_NUMBER/world-cloud-generator-1.$BUILD_NUMBER.gz" -o /opt/wordcloud/word-cloud-generator.gz
+                                        sshpass -p 'vagrant' ssh vagrant@192.168.33.85 -o StrictHostKeyChecking=no " cd /opt/wordcloud/
+                                        sudo curl -u downloader:downloader -X GET "http://192.168.33.90:8081/repository/world-cloud-build/$git_branch/world-cloud-generator/1.$BUILD_NUMBER/world-cloud-generator-1.$BUILD_NUMBER.gz" -o /opt/wordcloud/word-cloud-generator.gz
                                         if [[ $? -ne 0 ]];
                                             then
                                                 echo "File not found"
@@ -108,5 +109,6 @@
                                     '''
                 }
             }
+        }    
     }
-}
+    
