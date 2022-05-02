@@ -13,19 +13,15 @@ pipeline {
             }
         }
 
-        #stage('tests') {
-        #    steps {
-        #06:53:36 Unpacking Go from https://golang.org/dl/go1.16.linux-amd64.tar.gz to /var/lib/jenkins/tools/org.jenkinsci.plugins.golang.GolangInstallation/Go_1.16 on Jenkins
-        #09:54:15 [GoBuild] $ /bin/sh -xe /tmp/jenkins16629103704149358972.sh
-        #09:54:15 + export GOPATH=/var/lib/jenkins/workspace/GoBuild/go
-        #09:54:15 + go env GOPATH
-        #09:54:15 + export PATH=/var/lib/jenkins/tools/org.jenkinsci.plugins.golang.GolangInstallation/Go_1.16/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/var/lib/jenkins/workspace/GoBuild/go/bin
-        #        sh '''make lint
-        #              make test '''
-        #    }
-        #}
+         stage('tests') {
+            steps {
+       
+               sh '''make lint
+                     make test '''
+            }
+        }
 
-        stage('build') {
+         stage('build') {
             steps {
                 sh '''export GOPATH=$WORKSPACE/go
                       export PATH="$PATH:$(go env GOPATH)/bin"
@@ -42,13 +38,13 @@ pipeline {
             }
         }
 
-        stage('upload to nexus') {
+         stage('upload to nexus') {
             steps {
                 nexusArtifactUploader artifacts: [[artifactId: 'word-cloud-generator', classifier: '', file: 'artifacts/word-cloud-generator', type: 'gz']], credentialsId: 'nexus-creds', groupId: "$git_branch", nexusUrl: "192.168.33.90:8081", nexusVersion: 'nexus3', protocol: 'http', repository: 'word-cloud-build', version: '1.$BUILD_NUMBER'
                 }
             }
 
-        stage('on stage') {
+         stage('on stage') {
             steps {
                        sh '''
                               sshpass -p 'vagrant' ssh vagrant@192.168.33.80 -o StrictHostKeyChecking=no " cd /opt/wordcloud/
@@ -67,7 +63,7 @@ pipeline {
                 }
             }
 
-        stage('parallel tests') {
+         stage('parallel tests') {
             steps {
                 parallel (
                     "test1" : {
@@ -94,7 +90,7 @@ pipeline {
             }
         }
 
-        stage('on prod') {
+         stage('on prod') {
             steps {
                         sh '''
                               sshpass -p 'vagrant' ssh vagrant@${stage} -o StrictHostKeyChecking=no " cd /opt/wordcloud/
@@ -111,6 +107,6 @@ pipeline {
                                 fi"
                            '''
                 }
-            }
+           }
     }
 }
