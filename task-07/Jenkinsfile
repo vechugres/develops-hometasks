@@ -15,6 +15,11 @@ pipeline {
 
         #stage('tests') {
         #    steps {
+        #06:53:36 Unpacking Go from https://golang.org/dl/go1.16.linux-amd64.tar.gz to /var/lib/jenkins/tools/org.jenkinsci.plugins.golang.GolangInstallation/Go_1.16 on Jenkins
+        #09:54:15 [GoBuild] $ /bin/sh -xe /tmp/jenkins16629103704149358972.sh
+        #09:54:15 + export GOPATH=/var/lib/jenkins/workspace/GoBuild/go
+        #09:54:15 + go env GOPATH
+        #09:54:15 + export PATH=/var/lib/jenkins/tools/org.jenkinsci.plugins.golang.GolangInstallation/Go_1.16/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/var/lib/jenkins/workspace/GoBuild/go/bin
         #        sh '''make lint
         #              make test '''
         #    }
