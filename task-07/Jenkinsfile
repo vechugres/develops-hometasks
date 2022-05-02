@@ -47,7 +47,7 @@ pipeline {
                         steps {
                                 sh '''
                                     sshpass -p 'vagrant' ssh vagrant@192.168.33.80 -o StrictHostKeyChecking=no " cd /opt/wordcloud/
-                                    sudo curl -u downloader:downloader -X GET "http://192.168.33.90:8081/repository/world-cloud-build/1/world-cloud-generator/1.$BUILD_NUMBER/world-cloud-generator-1.$BUILD_NUMBER.gz" -o /opt/wordcloud/word-cloud-generator.gz
+                                    sudo curl -u downloader:downloader -X GET "http://192.168.33.90:8081/repository/world-cloud-build/$git_branch/world-cloud-generator/1.$BUILD_NUMBER/world-cloud-generator-1.$BUILD_NUMBER.gz" -o /opt/wordcloud/word-cloud-generator.gz
                                     if [[ $? -ne 0 ]];
                                     then
                                         echo "File not found"
