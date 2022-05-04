@@ -20,7 +20,6 @@
   - github-branch-source
   - golang
   - pipeline
-  - pipeline-stage-view
   - pipeline-github-lib
   - workflow-cps
   - workflow-aggregator
