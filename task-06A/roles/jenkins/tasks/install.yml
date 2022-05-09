@@ -1,20 +1,22 @@
 ---
-- name: Install key for repo
-  apt_key:
-    url: https://pkg.jenkins.io/debian/jenkins.io.key
-    state: present
-    
-- name: Add repo to repofile
+- name: Add the repository key
+  get_url:
+    url: 'https://pkg.jenkins.io/debian-stable/jenkins.io.key'
+    dest: '/usr/src/jenkins.io.key'
+
+- name: Add a key (apt-key Is Deprecated)
+  shell: 'cat /usr/src/jenkins.io.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/jenkins.gpg  >/dev/null'
+
+- name: Add specified repository into sources list
   apt_repository:
-    repo: deb https://pkg.jenkins.io/debian-stable binary/
+    repo: 'deb [signed-by=/etc/apt/trusted.gpg.d/jenkins.gpg] https://pkg.jenkins.io/debian-stable binary/'
     state: present
-    update_cache: yes
 
 - name: Install packeges all other
   apt:
     pkg:
     - git
-    - build-essential 
+    - build-essential
     - default-jre
     - mc
     - python-pip
