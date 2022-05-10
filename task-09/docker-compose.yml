@@ -19,4 +19,4 @@ services:
       - alina
     container_name: nexus
 networks:
-  alina: {}
+  alina:
