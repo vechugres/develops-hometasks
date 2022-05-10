@@ -123,4 +123,3 @@
         user: "{{ jenkins_user }}"
         password: "{{ jenkins_passw }}"
         url: "{{ jenkins_url }}"
-    

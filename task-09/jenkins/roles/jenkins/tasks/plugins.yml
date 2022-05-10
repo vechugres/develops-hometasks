@@ -3,7 +3,7 @@
   jenkins_plugin:
     name: "{{ item }}"
     state: present
-    timeout: 500
+    timeout: 300
     with_dependencies: yes
     url_username: "{{ jenkins_user }}"
     url_password: "{{ jenkins_password }}"
@@ -37,7 +37,7 @@
   - nexus-artifact-uploader
   - timestamper
 
-- name: Jenkins stop
+- name: restart jenkins
   service:
     name: jenkins
-    state: stopped
+    state: restarted

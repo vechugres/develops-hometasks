@@ -58,6 +58,25 @@
   - 'org.jenkinsci.plugins.golang.GolangBuildWrapper.xml'
   - 'org.jvnet.hudson.plugins.SSHBuildWrapper.xml'
 
+#- name: Make dirs
+#    file:
+#      path: "{{ item }}"
+#      state: directory
+#      owner: jenkins
+#      group: jenkins
+#    with_items:
+#      - /var/lib/jenkins/jobs/GoBuild
+#
+# - name: Copy config files
+#   copy:
+#    src: "{{ item.src }}"
+#    dest: "{{ item.dst }}"
+#    owner: jenkins
+#    group: jenkins
+#    force: yes
+#  with_items:
+#      - { src: "jobs/GoBuild/config.xml", dst: "/var/lib/jenkins/jobs/GoBuild/" }
+
 #- name: restart Jenkins
 #  systemd:
 #    name: jenkins
