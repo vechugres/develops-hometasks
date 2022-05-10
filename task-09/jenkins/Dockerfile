@@ -1,5 +1,5 @@
 FROM debian:buster
-RUN apt-get update && apt-get install -y ansible
+RUN apt-get update && apt-get install -y ansible curl
 
 COPY ./jenkins.yml /temp/jenkins.yaml
 COPY ./roles /etc/ansible/roles

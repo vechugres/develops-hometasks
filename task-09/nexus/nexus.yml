@@ -1,5 +1,5 @@
 ---
-- name: Setup Nexus
+- name: setup nexus
   hosts: localhost
   become: yes
   pre_tasks:
