@@ -6,4 +6,6 @@ COPY ./roles /etc/ansible/roles
 COPY ./jobs /temp/jobs
 RUN ansible-playbook /temp/jenkins.yml
 
-ENTRYPOINT service jenkins start
+WORKDIR /var/lib/jenkins
+CMD jenkins start
+
