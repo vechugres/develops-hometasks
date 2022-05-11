@@ -37,7 +37,7 @@
   - nexus-artifact-uploader
   - timestamper
 
-# name: restart jenkins
-# service:
-#   name: jenkins
-#   state: restarted
+#- name: restart jenkins
+#  service:
+#    name: jenkins
+#    state: restarted
