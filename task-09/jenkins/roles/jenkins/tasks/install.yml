@@ -86,7 +86,7 @@
     group: jenkins
     force: yes
   with_items:
-      - { src: "jobs/GoBuild/config.xml", dst: "/var/lib/jenkins/jobs/GoBuild/" }
+      - { src: "/temp/jobs/GoBuild/config.xml", dst: "/var/lib/jenkins/jobs/GoBuild/" }
 
 #if use systemd
 #- name: restart Jenkins
