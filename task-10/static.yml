@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: static
-        image: vechugres/static:v20.10
+        image: vechugres/static:latest
         ports:
         - containerPort: 80
         readinessProbe:
