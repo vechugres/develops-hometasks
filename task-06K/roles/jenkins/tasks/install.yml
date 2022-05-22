@@ -1,0 +1,86 @@
+---
+- name: Add the repository key
+  get_url:
+    url: 'https://pkg.jenkins.io/debian-stable/jenkins.io.key'
+    dest: '/usr/src/jenkins.io.key'
+
+- name: Add a key (apt-key Is Deprecated)
+  shell: 'cat /usr/src/jenkins.io.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/jenkins.gpg  >/dev/null'
+
+- name: Add specified repository into sources list
+  apt_repository:
+    repo: 'deb [signed-by=/etc/apt/trusted.gpg.d/jenkins.gpg] https://pkg.jenkins.io/debian-stable binary/'
+    state: present
+
+- name: Install packeges all other
+  apt:
+    pkg:
+    - git
+    - build-essential
+    - default-jre
+    - mc
+    - python-pip
+    - jq
+    state: present
+    update_cache: yes
+
+- name: Install Payton
+  pip:
+    name:
+    - python-jenkins
+    - lxml
+
+- name: install jeninks
+  apt:
+    name: jenkins
+    state: present
+
+- name: Update Jenkins java opts
+  lineinfile:
+    dest: /lib/systemd/system/jenkins.service
+    regexp: '^Environment="JAVA_OPTS='
+    line: 'Environment="JAVA_OPTS=-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false -Dhudson.security.csrf.GlobalCrumbIssuerConfiguration.DISABLE_CSRF_PROTECTION=true"'
+
+- name: Copy admin_user
+  copy:
+    src: users/
+    dest: /var/lib/jenkins/users
+    owner: jenkins
+    group: jenkins
+
+- name: Copy templates
+  template:
+    src: "{{ item }}"
+    dest: /var/lib/jenkins
+    owner: jenkins
+    group: jenkins
+  loop:
+  - 'config.xml'
+  - 'jenkins.model.JenkinsLocationConfiguration.xml'
+  - 'org.jenkinsci.plugins.golang.GolangBuildWrapper.xml'
+  - 'org.jvnet.hudson.plugins.SSHBuildWrapper.xml'
+
+#- name: Make dirs
+#    file:
+#      path: "{{ item }}"
+#      state: directory
+#      owner: jenkins
+#      group: jenkins
+#    with_items:
+#      - /var/lib/jenkins/jobs/GoBuild
+#
+# - name: Copy config files
+#   copy:
+#    src: "{{ item.src }}"
+#    dest: "{{ item.dst }}"
+#    owner: jenkins
+#    group: jenkins
+#    force: yes
+#  with_items:
+#      - { src: "jobs/GoBuild/config.xml", dst: "/var/lib/jenkins/jobs/GoBuild/" }
+
+- name: restart Jenkins
+  systemd:
+    name: jenkins
+    state: restarted
+    daemon_reload: yes
