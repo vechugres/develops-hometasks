@@ -36,6 +36,7 @@
   - ssh-slaves
   - nexus-artifact-uploader
   - timestamper
+  - docker-workflow
 
 - name: restart jenkins
   service:

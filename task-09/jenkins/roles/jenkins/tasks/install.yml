@@ -1,84 +1,125 @@
 ---
+ - name: Install key for repo
+   apt_key:
+     url: https://pkg.jenkins.io/debian/jenkins.io.key
+     state: present
 
-- name: Install packeges all other
-  apt:
-    pkg:
-    - git
-    - build-essential
-    - default-jre
-    - python3-pip
-    - jq
-    state: present
-    update_cache: yes
+ - name: Add repo to repofile
+   apt_repository:
+     repo: deb https://pkg.jenkins.io/debian-stable binary/
+     state: present
+     update_cache: yes
 
-- name: Install Payton
-  pip:
-    name:
-    - python-jenkins
-    - lxml
+ - name: Install packeges all other
+   apt:
+     pkg:
+     - git
+     - build-essential
+     - default-jre
+     - python3-pip
+     - jq
+     state: present
+     update_cache: yes
 
-- name: Install key for repo
-  apt_key:
-    url: https://pkg.jenkins.io/debian/jenkins.io.key
-    state: present
+ - name: Install Python
+   pip:
+     name:
+     - python-jenkins
+     - lxml
 
-- name: Add repo to repofile
-  apt_repository:
-    repo: deb https://pkg.jenkins.io/debian-stable binary/
-    state: present
-    update_cache: yes
+ - name: install jeninks
+   apt:
+     name: jenkins
+     state: present
 
-- name: install jeninks
-  apt:
-    name: jenkins
-    state: present
+ - name: Stop Jenkins service
+   sysvinit:
+     name: jenkins
+     state: stopped
 
-- name: Update Jenkins java opts
-  lineinfile:
-    dest: /lib/systemd/system/jenkins.service
-    regexp: '^Environment="JAVA_OPTS='
-    line: 'Environment="JAVA_OPTS=-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false -Dhudson.security.csrf.GlobalCrumbIssuerConfiguration.DISABLE_CSRF_PROTECTION=true"'
+ #if use sysvinit
+ - name: Disable start wizard
+   lineinfile:
+      path: "{{ item.path }}"
+      state: present
+      regexp: "{{ item.exp }}"
+      line: "{{ item.n_ln }}"
+   with_items:
+     - { path: "/etc/default/jenkins", exp: '^JAVA_ARGS="-Djava.awt.headless=true"', n_ln: 'JAVA_ARGS="-Djava.awt.headless=true -Djenkins. install.runSetupWizard=false -Dhudson.security.csrf.DefaultCrumbIssuer.EXCLUDE_SESSION_ID=true"' }
 
-- name: Copy admin_user
-  copy:
-    src: users/
-    dest: /var/lib/jenkins/users
-    owner: jenkins
-    group: jenkins
 
-- name: Copy templates
-  template:
-    src: "{{ item }}"
-    dest: /var/lib/jenkins
-    owner: jenkins
-    group: jenkins
-  loop:
-  - 'config.xml'
-  - 'jenkins.model.JenkinsLocationConfiguration.xml'
-  - 'org.jenkinsci.plugins.golang.GolangBuildWrapper.xml'
-  - 'org.jvnet.hudson.plugins.SSHBuildWrapper.xml'
 
+ #if use systemd
+ # name: Update Jenkins java opts
+ # lineinfile:
+ #   dest: /lib/systemd/system/jenkins.service
+ #   regexp: '^Environment="JAVA_OPTS='
+ #   line: 'Environment="JAVA_OPTS=-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false -Dhudson.security.csrf. GlobalCrumbIssuerConfiguration.DISABLE_CSRF_PROTECTION=true"'
+
+ - name: Copy admin_user
+   copy:
+     src: users/
+     dest: /var/lib/jenkins/users
+     owner: jenkins
+     group: jenkins
+
+ - name: Copy templates
+   copy:
+     src: /templates/
+     dest: /var/lib/jenkins/
+     owner: jenkins
+     group: jenkins
+
+
+ - name: Remove file
+      file:
+        path: /var/lib/jenkins/identity.key.enc
+        state: absent!!!!!
+
+
+ - name: Ensure Jenkins is started and runs on startup.
+   sysvinit: name=jenkins state=started enabled=yes
+#   loop:
+#   - 'config.xml'
+#   - 'jenkins.model.JenkinsLocationConfiguration.xml'
+#   - 'org.jenkinsci.plugins.golang.GolangBuildWrapper.xml'
+#   - 'org.jvnet.hudson.plugins.SSHBuildWrapper.xml'
+#   - 'credentials.xml'
+
+ ##if use handmade job
 #- name: Make dirs
-#    file:
-#      path: "{{ item }}"
-#      state: directory
-#      owner: jenkins
-#      group: jenkins
-#    with_items:
-#      - /var/lib/jenkins/jobs/GoBuild
+#  file:
+#    path: "{{ item }}"
+#    state: directory
+#    owner: jenkins
+#    group: jenkins
+#  with_items:
+#      - '/var/lib/jenkins/jobs/GoBuild'
 #
-# - name: Copy config files
-#   copy:
+#- name: Copy config files
+#  copy:
 #    src: "{{ item.src }}"
 #    dest: "{{ item.dst }}"
 #    owner: jenkins
 #    group: jenkins
 #    force: yes
 #  with_items:
-#      - { src: "jobs/GoBuild/config.xml", dst: "/var/lib/jenkins/jobs/GoBuild/" }
+#      - { src: "/temp/jobs/GoBuild/config.xml", dst: "/var/lib/jenkins/jobs/GoBuild/" }
 
-#- name: restart Jenkins
-#  systemd:
-#    name: jenkins
-#    state: restarted
-#    daemon_reload: yes
+ #if use systemd
+ #- name: restart Jenkins
+ #  systemd:
+ #    name: jenkins
+ #    state: restarted
+ #    daemon_reload: yes
+
+ #- name: Ensure Jenkins is started and runs on startup.
+ #  service: name=jenkins state=started enabled=yes
+ #
+ #- name: Ensure Jenkins is started and runs on startup.
+ #  service: name=jenkins state=started enabled=yes
+ #
+ #- name: Sleep for 180 seconds and continue with play
+ #  wait_for:
+ #    timeout: 180
+ #  delegate_to: localhost
