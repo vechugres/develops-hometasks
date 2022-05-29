@@ -1,0 +1,17 @@
+FROM golang:1.16
+
+RUN mkdir /wcg && \
+    cd /wcg && \
+    git clone https://github.com/Fenikks/word-cloud-generator.git && \
+    cd word-cloud-generator && \
+    make
+
+CMD /wcg/word-cloud-generator/artifacts/linux/word-cloud-generator
+
+FROM alpine:latest
+
+RUN apk add gcompat
+
+COPY --from=0 /wcg/word-cloud-generator/artifacts/linux/word-cloud-generator .
+
+CMD /word-cloud-generator
