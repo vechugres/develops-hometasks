@@ -12,6 +12,4 @@ resource "github_repository_file" "files" {
     content = file("${var.path}/${element(var.files, count.index)}")
     commit_message = "my_commit"
     overwrite_on_create = true
-
-
 }
