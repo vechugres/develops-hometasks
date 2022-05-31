@@ -9,6 +9,8 @@ services:
     networks:
       - alina
     container_name: jenkins
+    volumes:
+      - /var/run/docker.sock:/jenkins/workspace
   nexus:
     build:
       context: ./nexus
@@ -20,3 +22,6 @@ services:
     container_name: nexus
 networks:
   alina:
+    name: alina
+volumes:
+  

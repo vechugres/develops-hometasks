@@ -1,9 +1,6 @@
 ---
 - include_tasks: install.yml
 - include_tasks: plugins.yml
+
 #- include_tasks: jobs.yml
-<<<<<<< HEAD
 #- include_tasks: creds.yml
-=======
-- include_tasks: creds.yml
->>>>>>> c3ca9b1fc59ec6ed7b635eafcfdf0c71764d210d

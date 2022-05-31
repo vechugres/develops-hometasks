@@ -1,35 +1,54 @@
 ---
-<<<<<<< HEAD
- - name: Install key for repo
-   apt_key:
-     url: https://pkg.jenkins.io/debian/jenkins.io.key
-     state: present
-=======
-- name: Install key for repo
-  apt_key:
-    url: https://pkg.jenkins.io/debian/jenkins.io.key
-    state: present
+#- name: Install key for repo
+#  apt_key:
+#    url: "https://pkg.jenkins.io/debian{{ '-stable' if (false | bool) else '' }}/jenkins.io.key"
+#    state: present
+#
+#- name: Add repo to repofile
+#  apt_repository:
+#    repo: deb https://pkg.jenkins.io/debian{{ '-stable' if (false | bool) else '' }} binary/
+#    state: present
+#    update_cache: yes
 
-- name: Add repo to repofile
-  apt_repository:
-    repo: deb https://pkg.jenkins.io/debian-stable binary/
-    state: present
-    update_cache: yes
->>>>>>> c3ca9b1fc59ec6ed7b635eafcfdf0c71764d210d
 
- - name: Add repo to repofile
+
+# - name: key
+#   get_url:
+#    url: 'https://pkg.jenkins.io/debian-stable/jenkins.io.key'
+#    dest: '/usr/share/keyrings/jenkins-keyring.asc'
+#
+# - name: repo
+#   apt_repository:
+#     repo: 'deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/'
+#     state: present
+
+
+ - name: Add the repository key
+   get_url:
+     url: 'https://pkg.jenkins.io/debian-stable/jenkins.io.key'
+     dest: '/usr/src/jenkins.io.key'
+
+ - name: Add a key (apt-key Is Deprecated)
+   shell: 'cat /usr/src/jenkins.io.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/jenkins.gpg  >/dev/null'
+
+ - name: Add specified repository into sources list
    apt_repository:
-     repo: deb https://pkg.jenkins.io/debian-stable binary/
+     repo: 'deb [signed-by=/etc/apt/trusted.gpg.d/jenkins.gpg] https://pkg.jenkins.io/debian-stable binary/'
      state: present
+
+
+
+ - name: apt-get update
+   apt:
      update_cache: yes
 
-<<<<<<< HEAD
  - name: Install packeges all other
    apt:
      pkg:
      - git
      - build-essential
-     - default-jre
+     - openjdk-11-jdk-headless
+    # - default-jre
      - python3-pip
      - jq
      state: present
@@ -40,6 +59,11 @@
      name:
      - python-jenkins
      - lxml
+
+ - name: Install dependencies
+   apt:
+    name: net-tools
+    state: present
 
  - name: install jeninks
    apt:
@@ -60,47 +84,9 @@
       line: "{{ item.n_ln }}"
    with_items:
      - { path: "/etc/default/jenkins", exp: '^JAVA_ARGS="-Djava.awt.headless=true"', n_ln: 'JAVA_ARGS="-Djava.awt.headless=true -Djenkins. install.runSetupWizard=false -Dhudson.security.csrf.DefaultCrumbIssuer.EXCLUDE_SESSION_ID=true"' }
-=======
-- name: Install Python
-  pip:
-    name:
-    - python-jenkins
-    - lxml
-
-- name: install jeninks
-  apt:
-    name: jenkins
-    state: present
-
-- name: Stop Jenkins service
-  service:
-    name: jenkins
-    state: stopped
-
-#if use sysvinit
-- name: Disable start wizard 
-  lineinfile: 
-     path: "{{ item.path }}" 
-     state: present 
-     regexp: "{{ item.exp }}" 
-     line: "{{ item.n_ln }}" 
-  with_items: 
-    - { path: "/etc/default/jenkins", exp: '^JAVA_ARGS="-Djava.awt.headless=true"', n_ln: 'JAVA_ARGS="-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false -Dhudson.security.csrf.DefaultCrumbIssuer.EXCLUDE_SESSION_ID=true"' }
-
-- name: Ensure Jenkins is started and runs on startup.
-  service: name=jenkins state=started enabled=yes
-
-#if use systemd
-# name: Update Jenkins java opts
-# lineinfile:
-#   dest: /lib/systemd/system/jenkins.service
-#   regexp: '^Environment="JAVA_OPTS='
-#   line: 'Environment="JAVA_OPTS=-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false -Dhudson.security.csrf.GlobalCrumbIssuerConfiguration.DISABLE_CSRF_PROTECTION=true"'
->>>>>>> c3ca9b1fc59ec6ed7b635eafcfdf0c71764d210d
 
 
 
-<<<<<<< HEAD
  #if use systemd
  # name: Update Jenkins java opts
  # lineinfile:
@@ -123,10 +109,10 @@
      group: jenkins
 
 
- - name: Remove file
-      file:
-        path: /var/lib/jenkins/identity.key.enc
-        state: absent!!!!!
+#- name: Remove file
+#  file:
+#   path: /var/lib/jenkins/identity.key.enc
+#   state: absent
 
 
  - name: Ensure Jenkins is started and runs on startup.
@@ -168,46 +154,7 @@
  #- name: Ensure Jenkins is started and runs on startup.
  #  service: name=jenkins state=started enabled=yes
  #
- #- name: Ensure Jenkins is started and runs on startup.
- #  service: name=jenkins state=started enabled=yes
- #
  #- name: Sleep for 180 seconds and continue with play
  #  wait_for:
  #    timeout: 180
  #  delegate_to: localhost
-=======
-#if use hansmade job
-- name: Make dirs
-  file:
-    path: "{{ item }}"
-    state: directory
-    owner: jenkins
-    group: jenkins
-  with_items:
-      - /var/lib/jenkins/jobs/GoBuild
-#
-- name: Copy config files
-  copy:
-    src: "{{ item.src }}"
-    dest: "{{ item.dst }}"
-    owner: jenkins
-    group: jenkins
-    force: yes
-  with_items:
-      - { src: "/temp/jobs/GoBuild/config.xml", dst: "/var/lib/jenkins/jobs/GoBuild/" }
-
-#if use systemd
-#- name: restart Jenkins
-#  systemd:
-#    name: jenkins
-#    state: restarted
-#    daemon_reload: yes
-
-- name: Ensure Jenkins is started and runs on startup.
-  service: name=jenkins state=started enabled=yes
-
-- name: Sleep for 180 seconds and continue with play
-  wait_for:
-    timeout: 180
-  delegate_to: localhost
->>>>>>> c3ca9b1fc59ec6ed7b635eafcfdf0c71764d210d

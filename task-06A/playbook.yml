@@ -4,6 +4,7 @@
   become: yes
   roles:
   - jenkins
+  tags: jen
 
 
 - name: Configure Nexus
@@ -16,9 +17,11 @@
   - include_tasks: nexus_pre_tasks.yml
   roles:
   - ansible-thoteam.nexus3-oss
+  tags: nex
 
 - name: Configure staging-production
   hosts: staging, production
   become: yes
   tasks:
   - include_tasks: staging-prod.yml
+  tags: stpr
