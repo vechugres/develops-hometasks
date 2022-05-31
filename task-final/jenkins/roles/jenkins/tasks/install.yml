@@ -19,8 +19,6 @@
  - name: install packeges all other
    apt:
      pkg:
-   apt:
-     name: jenkins
      - git
      - build-essential
      - openjdk-11-jdk-headless
@@ -41,6 +39,8 @@
     state: present
 
  - name: install jeninks
+   apt: 
+     name: jenkins
      state: present
 
  - name: stop Jenkins service

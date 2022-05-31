@@ -12,6 +12,7 @@ services:
     container_name: jenkins
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - jks_vol:/var/lib/jenkins/workspace/
 
   nexus:
     build:
@@ -28,6 +29,6 @@ networks:
 
 
 volumes:
-    external:
+    jks_vol:
     
   
