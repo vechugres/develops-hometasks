@@ -1,5 +1,6 @@
 version: '3'
 services:
+
   jenkins:
     build:
       context: ./jenkins
@@ -10,7 +11,8 @@ services:
       - alina
     container_name: jenkins
     volumes:
-      - /var/run/docker.sock:/jenkins/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+
   nexus:
     build:
       context: ./nexus
@@ -20,8 +22,11 @@ services:
     networks:
       - alina
     container_name: nexus
+
 networks:
   alina:
-    name: alina
+
+
 volumes:
+    external:
   
