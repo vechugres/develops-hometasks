@@ -1,67 +1,74 @@
----
-- name: add Jenkins key
-  apt_key:
-    url: "https://pkg.jenkins.io/debian-stable/jenkins.io.key"
-    state: present
+    - name: setup Jenkins
+      apt:
+        pkg:
+        - daemon
+        - git
+        - build-essential
+        - python-pip-whl
+        - python3-pip
+        - openjdk-11-jdk
+        state: present
+        update_cache: yes
 
-- name: add Jenkins repository
-  apt_repository:
-    repo: 'deb https://pkg.jenkins.io/debian-stable binary/'
-    state: present
+    - name: install Python
+      pip:
+        name:
+          - python-jenkins
+          - lxml
 
-- name: install packeges all other
-  apt:
-    pkg:
-    - git
-    - build-essential
-    - default-jre
-    - jq
-    state: present
-    update_cache: true
+    - name: add Jenkins repo
+      apt_key:
+        url: https://pkg.jenkins.io/debian/jenkins.io.key
+        state: present
 
-- name: install Jeninks
-  apt:
-    name: jenkins
-    state: present
-    update_cache: true
+    - name: Add repo to repofile
+      apt_repository:
+        repo: deb https://pkg.jenkins.io/debian-stable binary/
+        state: present
+        update_cache: yes
 
-- name: wizard off
-  lineinfile:
-    dest: /etc/default/jenkins
-    regexp: '^JAVA_ARGS='
-    line: 'JAVA_ARGS="-Djenkins.install.runSetupWizard=false -Dhudson.security.csrf.DefaultCrumbIssuer.EXCLUDE_SESSION_ID=true -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8"'
+    - name: install Jenkins
+      apt:
+        pkg:
+        - jenkins
+        state: present
+      ignore_errors: yes
 
-- name: Jenkins is restarted
-  service:
-    name: jenkins
-    state: restarted
-    enabled: yes
-  changed_when: false
+    - name: delete file inintialAdminPassword
+      file:
+        path: /var/lib/jenkins/secrets/initialAdminPassword
+        state: absent
 
-- name: pause for 2 minutes
-  pause:
-    minutes: 2
+    - name: copy admin_user
+      copy:
+        src: users/
+        dest: /var/lib/jenkins/users
+        owner: jenkins
+        group: jenkins
 
-- name: Copy admin_user
-  copy:
-    src: users/
-    dest: /var/lib/jenkins/users
-    owner: jenkins
-    group: jenkins
+    - name: copy templates
+      copy:
+        src: /templates/
+        dest: /var/lib/jenkins/
+        owner: jenkins
+        group: jenkins
 
-- name: Copy templates
-  copy:
-    src: /templates/
-    dest: /var/lib/jenkins/
-    owner: jenkins
-    group: jenkins
+    - name: disable start wizard
+      lineinfile:
+         path: "{{ item.path }}"
+         state: present
+         regexp: "{{ item.exp }}"
+         line: "{{ item.n_ln }}"
+      with_items:
+        - { path: "/etc/default/jenkins", exp: '^JAVA_ARGS="-Djava.awt.headless=true"', n_ln: 'JAVA_ARGS="-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false -Dhudson.security.csrf.DefaultCrumbIssuer.EXCLUDE_SESSION_ID=true"' }
 
-- name: remove file
-  file:
-    path: /var/lib/jenkins/identity.key.enc
-    state: absent
+    - name: start Jenkins
+      sysvinit:
+        name: jenkins
+        state: started
+        enabled: yes
 
-- name: restart jenkins
-  service:
-    name: jenkins
-    state: restarted
+    - name: sleep for 180 seconds
+      wait_for:
+        timeout: 180
+      delegate_to: localhost
