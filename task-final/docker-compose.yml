@@ -5,30 +5,18 @@ services:
     build:
       context: ./jenkins
       dockerfile: Dockerfile
-    ports:
-      - 80:8080
-    networks:
-      - alina
     container_name: jenkins
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - jks_vol:/var/lib/jenkins/workspace/
+    network_mode: host
 
   nexus:
     build:
       context: ./nexus
       dockerfile: Dockerfile
-    ports:
-      - 81:8081
-    networks:
-      - alina
     container_name: nexus
-
-networks:
-  alina:
-
+    network_mode: host
 
 volumes:
     jks_vol:
-    
-  
