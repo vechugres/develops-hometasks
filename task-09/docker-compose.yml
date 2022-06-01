@@ -1,5 +1,6 @@
 version: '3'
 services:
+
   jenkins:
     build:
       context: ./jenkins
@@ -24,4 +25,3 @@ networks:
   alina:
     name: alina
 volumes:
-  

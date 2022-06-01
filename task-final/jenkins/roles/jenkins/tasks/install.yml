@@ -16,12 +16,12 @@
           - python-jenkins
           - lxml
 
-    - name: add Jenkins repo
+    - name: add Jenkins key
       apt_key:
         url: https://pkg.jenkins.io/debian/jenkins.io.key
         state: present
 
-    - name: Add repo to repofile
+    - name: add Jenkins repo
       apt_repository:
         repo: deb https://pkg.jenkins.io/debian-stable binary/
         state: present
